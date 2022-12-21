@@ -414,7 +414,7 @@ function projectTest() {
       .expect(200)
   })
 
-  it('Meta diff sync', async () => {
+  it('Syncs Meta diff ', async () => {
     const response = await request(context.app)
       .post(`/api/v1/db/meta/projects/${project.id}/meta-diff`)
       .set('xc-auth', context.token)
@@ -426,9 +426,9 @@ function projectTest() {
   })
 
   // todo: improve test. Check whether the all the actions are present in the response and correct as well
-  it('Meta diff sync', async () => {
+  it('Gets Meta diff', async () => {
     const response = await request(context.app)
-      .get(`/api/v1/db/meta/projects/${project.id}/audits`)
+      .get(`/api/v1/db/meta/projects/${project.id}/meta-diff`)
       .set('xc-auth', context.token)
       .send()
       .expect(200)

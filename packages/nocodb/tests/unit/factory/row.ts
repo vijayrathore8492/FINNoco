@@ -85,6 +85,7 @@ const generateDefaultRowAttributes = ({
     if (
       column.uidt === UITypes.LinkToAnotherRecord ||
       column.uidt === UITypes.ForeignKey ||
+      column.uidt === UITypes.Attachment ||
       column.uidt === UITypes.ID
     ) {
       return acc;

@@ -14,10 +14,11 @@ export async function apiTokenCreate(req: Request, res: Response) {
   res.json(await ApiToken.insert({ ...req.body, fk_user_id: req['user'].id }));
 }
 export async function apiTokenDelete(req: Request, res: Response) {
-  const apiToken = await ApiToken.getByToken(req.params.apiTokenId);
+  const apiToken = await ApiToken.getByToken(req.params.token);
   if (
-    !req['user'].roles.includes(OrgUserRoles.SUPER_ADMIN) &&
-    apiToken.fk_user_id !== req['user'].id
+    !apiToken ||
+    (apiToken.fk_user_id !== req['user'].id &&
+      !req['user'].roles.includes(OrgUserRoles.SUPER_ADMIN))
   ) {
     NcError.notFound('Token not found');
   }
