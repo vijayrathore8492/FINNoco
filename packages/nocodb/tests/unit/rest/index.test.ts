@@ -9,6 +9,7 @@ import viewRowTests from './tests/viewRow.test';
 import apiTokenTests from './tests/apiToken.test';
 import attachmentTests from './tests/attachment.test';
 import auditTests from './tests/audit.test';
+import columnTests from './tests/column.test';
 import chai from 'chai';
 chai.use(require('chai-subset'));
 
@@ -23,6 +24,7 @@ function restTests() {
   apiTokenTests();
   attachmentTests();
   auditTests();
+  columnTests();
 }
 
 export default function () {
