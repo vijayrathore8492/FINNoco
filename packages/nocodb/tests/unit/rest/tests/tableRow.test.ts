@@ -9,7 +9,7 @@ import {
   createLtarColumn,
   createRollupColumn,
 } from '../../factory/column';
-import { createTable, getTable } from '../../factory/table';
+import { createTable, getAllTables, getTable } from '../../factory/table';
 import {
   createChildRow,
   createRow,
@@ -23,6 +23,7 @@ import { isMysql, isSqlite } from '../../init/db';
 import Model from '../../../../src/lib/models/Model';
 import Project from '../../../../src/lib/models/Project';
 import { expect } from 'chai';
+import { readFileSync } from 'fs';
 
 const isColumnsCorrectInResponse = (row, columns: ColumnType[]) => {
   const responseColumnsListStr = Object.keys(row).sort().join(',');
@@ -1738,45 +1739,58 @@ function tableTest() {
   // it.only('Bulk update nested filtered table data list with a lookup column', async function () {
   // });
 
-  // todo: Test contents of file
-  // it('Export csv', async () => {
-  //   const response = await request(context.app)
-  //     .get(
-  //       `/api/v1/db/data/noco/${sakilaProject.id}/${customerTable.title}/export/csv`
-  //     )
-  //     .set('xc-auth', context.token)
-  //     .expect(200);
+  it('Export csv', async () => {
+    const response = await request(context.app)
+      .get(
+        `/api/v1/db/data/noco/${sakilaProject.id}/Actor/export/csv`
+      )
+      .set('xc-auth', context.token)
+      .expect(200);
 
-  //   if (
-  //     !response['header']['content-disposition'].includes('Customer-export.csv')
-  //   ) {
-  //     throw new Error('Wrong file name');
-  //   }
-  //   if (!response.text) {
-  //     throw new Error('Wrong export');
-  //   }
-  // });
+      const getDifference = (s, t) => {
+        let sum = t.charCodeAt(t.length - 1);
+        for (let j = 0; j < s.length; j++) {
+          sum -= s.charCodeAt(j);
+          sum += t.charCodeAt(j);
+        }
+        return String.fromCharCode(sum);
+      };
 
-  // todo: Test contents of file
-  // it('Export excel', async () => {
-  //   const response = await request(context.app)
-  //     .get(
-  //       `/api/v1/db/data/noco/${sakilaProject.id}/${customerTable.title}/export/excel`
-  //     )
-  //     .set('xc-auth', context.token)
-  //     .expect(200);
+    const contentFromFixture = readFileSync('./tests/unit/rest/fixtures/dataExports/Actor-export.csv').toString('utf-8')
+    //remove new line and carriage return while match
+    expect(response.text.replace(/(\r\n|\n|\r)/gm, "")).to.equal(contentFromFixture.replace(/(\r\n|\n|\r)/gm, ""))
+    if (
+      !response['header']['content-disposition'].includes('Actor-export.csv')
+    ) {
+      throw new Error('Wrong file name');
+    }
+    if (!response.text) {
+      throw new Error('Wrong export');
+    }
+  });
 
-  //   if (
-  //     !response['header']['content-disposition'].includes(
-  //       'Customer-export.xlsx'
-  //     )
-  //   ) {
-  //     throw new Error('Wrong file name');
-  //   }
-  //   if (!response.text) {
-  //     throw new Error('Wrong export');
-  //   }
-  // });
+  it('Export excel', async () => {
+    const response = await request(context.app)
+      .get(
+        `/api/v1/db/data/noco/${sakilaProject.id}/Actor/export/excel`
+      )
+      .set('xc-auth', context.token)
+      .expect(200);
+
+    const contentFromFixture = readFileSync('./tests/unit/rest/fixtures/dataExports/Actor-export.xlsx').toString('utf-8')
+    //remove new line and carriage return while match
+    expect(response.text).to.equal(contentFromFixture)
+    if (
+      !response['header']['content-disposition'].includes(
+        'Actor-export.xlsx'
+      )
+    ) {
+      throw new Error('Wrong file name');
+    }
+    if (!response.text) {
+      throw new Error('Wrong export');
+    }
+  });
 
   // todo: Add export test for views
 
