@@ -8,15 +8,20 @@ import { Exception } from 'handlebars'
 import Project from '../../../../src/lib/models/Project'
 import { packageVersion } from '../../../../src/lib/utils/packageVersion';
 import { expect } from 'chai'
+import { createView } from '../../factory/view'
+import { OrgUserRoles, ViewTypes } from 'nocodb-sdk'
+import { createVisibilityRule } from '../../factory/visibilityRules'
 
 function projectTest() {
   let context
   let project
+  let table;
 
   beforeEach(async function() {
     context = await init()
 
     project = await createProject(context)
+    table = await createTable(context, project);
   })
 
   it('Get project info', async () => {
@@ -38,14 +43,63 @@ function projectTest() {
   })
 
   // todo: Test by creating models under project and check if the UCL is working
-  it('UI ACL', async () => {
-    await request(context.app)
+  it('GET: UI ACL', async () => {
+    const response = await request(context.app)
       .get(`/api/v1/db/meta/projects/${project.id}/visibility-rules`)
       .set('xc-auth', context.token)
       .send({})
       .expect(200)
+
+    expect(response.body).to.containSubset([
+      {
+        ptn: table.table_name,
+        ptype: "table",
+        project_id: project.id,
+        fk_model_id: table.id,
+        title: table.title,
+        type: 3,
+        is_default: 1,
+        show_system_fields: null,
+        lock_type: "collaborative",
+        uuid: null,
+        password: null,
+        show: 1,
+        order: 1,
+        meta: null,
+        view: {
+          project_id: project.id,
+          uuid: null,
+          meta: null,
+        },
+        disabled: {
+          owner: false,
+          creator: false,
+          viewer: false,
+          editor: false,
+          commenter: false,
+          guest: false,
+        },
+      },
+    ]);
   })
-  // todo: Test creating visibility set
+
+  it('POST: UI ACL', async () => {
+    const views = await table.getViews();
+    const response = await request(context.app)
+      .post(`/api/v1/db/meta/projects/${project.id}/visibility-rules`)
+      .set('xc-auth', context.token)
+      .send([{
+        disabled: {
+          editor: true
+        },
+        id: views[0].id
+      }])
+      .expect(200)
+
+    expect(response.body).to.deep.equal({
+      msg: "success",
+    });
+  })
 
   it('List projects', async () => {
     const response = await request(context.app)
