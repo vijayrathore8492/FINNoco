@@ -34,7 +34,6 @@ function columnTests() {
         np: null,
         ns: null,
         clen: null,
-        cop: "4",
         pk: 0,
         pv: null,
         rqd: 0,

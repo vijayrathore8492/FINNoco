@@ -1,4 +1,5 @@
 import request from 'supertest';
+import ProjectUser from '../../../src/lib/models/ProjectUser';
 import User from '../../../src/lib/models/User';
 
 const defaultUserArgs = {
@@ -15,7 +16,7 @@ const createUser = async (context, userArgs = {}) => {
   return { token: response.body.token, user };
 };
 
-const AddResetPasswordToken = async (user, token: string, expiry: Date) => {
+const addResetPasswordToken = async (user, token: string, expiry: Date) => {
   return await User.update(user.id, {
     email: user.email,
     reset_password_token: token,
@@ -23,4 +24,16 @@ const AddResetPasswordToken = async (user, token: string, expiry: Date) => {
   });
 }
 
-export { createUser, defaultUserArgs, AddResetPasswordToken };
+const addUserToProject = async (projectId, userId, roles?) => {
+  return await ProjectUser.insert({
+    project_id: projectId,
+    fk_user_id: userId,
+    roles: roles || 'editor',
+  });
+}
+
+const getProjectUser = async (projectId, userId) => {
+  return await ProjectUser.get( projectId, userId );
+}
+
+export { createUser, defaultUserArgs, addResetPasswordToken, addUserToProject, getProjectUser };
