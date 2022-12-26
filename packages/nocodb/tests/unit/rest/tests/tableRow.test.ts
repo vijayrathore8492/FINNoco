@@ -1747,15 +1747,6 @@ function tableTest() {
       .set('xc-auth', context.token)
       .expect(200);
 
-      const getDifference = (s, t) => {
-        let sum = t.charCodeAt(t.length - 1);
-        for (let j = 0; j < s.length; j++) {
-          sum -= s.charCodeAt(j);
-          sum += t.charCodeAt(j);
-        }
-        return String.fromCharCode(sum);
-      };
-
     const contentFromFixture = readFileSync('./tests/unit/rest/fixtures/dataExports/Actor-export.csv').toString('utf-8')
     //remove new line and carriage return while match
     expect(response.text.replace(/(\r\n|\n|\r)/gm, "")).to.equal(contentFromFixture.replace(/(\r\n|\n|\r)/gm, ""))

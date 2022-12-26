@@ -45,7 +45,6 @@ function apiTokenTests() {
       .expect(200);
 
     expect(response.body).to.containSubset({
-      id: 2,
       project_id: null,
       db_alias: null,
       description: "token with create api",
