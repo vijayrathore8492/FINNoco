@@ -16,6 +16,7 @@ import ViewTests from './tests/view.test';
 import ViewColumnTests from './tests/viewColumn.test';
 import FormViewTests from './tests/formview.test';
 import GalleryViewTests from './tests/galleryView.test';
+import GridViewTests from './tests/gridView.test';
 import chai from 'chai';
 chai.use(require('chai-subset'));
 
@@ -37,6 +38,7 @@ function restTests() {
   ViewColumnTests();
   FormViewTests();
   GalleryViewTests();
+  GridViewTests();
 }
 
 export default function () {
