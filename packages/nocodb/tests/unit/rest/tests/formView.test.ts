@@ -139,6 +139,28 @@ function FormViewTests() {
       expect(updatedView.subheading).to.equal(subheading);
     });
   })
+
+  describe('PATCH /api/v1/db/meta/form-columns/:formViewColumnId', function () {
+    it('updates a form view column', async function () {
+      const columns = await formView.getColumns();
+      const helpText = 'patchFormViewColumnTest';
+      console.log(columns[0]);
+      await request(context.app)
+        .patch(`/api/v1/db/meta/form-columns/${columns[0].id}`)
+        .set('xc-auth', context.token)
+        .send({
+          show: 1,
+          order: 5,
+          help: helpText
+        })
+        .expect(200);
+
+      const updatedColumn = (await formView.getColumns()).find(col => col.id === columns[0].id);
+      expect(updatedColumn.show).to.equal(1);
+      expect(updatedColumn.order).to.equal(5);
+      expect(updatedColumn.help).to.equal(helpText);
+    });
+  })
 }
 
 export default function () {
