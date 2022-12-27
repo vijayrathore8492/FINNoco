@@ -11,6 +11,9 @@ import attachmentTests from './tests/attachment.test';
 import auditTests from './tests/audit.test';
 import columnTests from './tests/column.test';
 import ProjectUserTests from './tests/projectUser.test';
+import PluginTests from './tests/plugin.test';
+import ViewTests from './tests/view.test';
+import ViewColumnTests from './tests/viewColumn.test';
 import chai from 'chai';
 chai.use(require('chai-subset'));
 
@@ -27,6 +30,9 @@ function restTests() {
   auditTests();
   columnTests();
   ProjectUserTests();
+  PluginTests();
+  ViewTests();
+  ViewColumnTests();
 }
 
 export default function () {

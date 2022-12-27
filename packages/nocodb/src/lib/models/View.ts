@@ -156,6 +156,7 @@ export default class View implements ViewType {
           ],
         }
       );
+      if (!view) return;
       // todo: cache - titleOrId can be viewId so we need a different scope here
       await NocoCache.set(
         `${CacheScope.VIEW}:${fk_model_id}:${titleOrId}`,
@@ -596,7 +597,6 @@ export default class View implements ViewType {
     },
     ncMeta = Noco.ncMeta
   ): Promise<Array<GridViewColumn | any>> {
-    const columns: Array<GridViewColumn | any> = [];
     const view = await this.get(viewId, ncMeta);
     let table;
     let cacheScope;
@@ -631,7 +631,7 @@ export default class View implements ViewType {
     // set meta
     await ncMeta.metaUpdate(null, null, table, updateObj, colId);
 
-    return columns;
+    return View.getColumns(viewId);
   }
 
   static async insertOrUpdateColumn(
