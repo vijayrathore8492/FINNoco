@@ -1,5 +1,6 @@
 import { ViewTypes } from 'nocodb-sdk';
 import request from 'supertest';
+import FormView from '../../../src/lib/models/FormView';
 import Model from '../../../src/lib/models/Model';
 import View from '../../../src/lib/models/View';
 
@@ -39,6 +40,10 @@ const getView = async (tableId, viewTitle) => {
   return await View.getByTitleOrId({ fk_model_id: tableId, titleOrId: viewTitle }) as View;
 }
 
+const getFormView = async (formViewId: string) => {
+  return await FormView.get(formViewId) as FormView;
+}
+
 const shareView = async (viewId: string) => {
   return await View.share(viewId)
 }
@@ -55,4 +60,4 @@ const insertOrUpdateColumnInView = async (viewId, columnId, colData) => {
   );
 }
 
-export { createView, getView, shareView, getAllSharedViews, insertOrUpdateColumnInView }
+export { createView, getView, shareView, getAllSharedViews, insertOrUpdateColumnInView, getFormView }
