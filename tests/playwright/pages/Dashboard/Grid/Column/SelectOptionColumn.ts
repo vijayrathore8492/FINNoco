@@ -49,6 +49,8 @@ export class SelectOptionColumnPageObject extends BasePage {
 
     await this.column.get().locator(`svg[data-testid="select-column-option-remove-${index}"]`).click();
 
+    await this.column.rootPage.getByTestId('confirm-option-removal').click();
+
     await this.column.save({ isUpdated: true });
   }
 

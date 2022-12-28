@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import Draggable from 'vuedraggable'
 import { UITypes } from 'nocodb-sdk'
-import { IsKanbanInj, enumColor, onMounted, useColumnCreateStoreOrThrow, useVModel, watch } from '#imports'
+import { IsKanbanInj, enumColor, onMounted, useColumnCreateStoreOrThrow, useI18n, useVModel, watch } from '#imports'
 
 const props = defineProps<{
   value: any
@@ -48,6 +48,8 @@ const validators = {
     },
   ],
 }
+
+const { t } = useI18n()
 
 setAdditionalValidations({
   ...validators,
@@ -167,11 +169,22 @@ watch(inputs, () => {
               @change="optionChanged(element.id)"
             />
 
-            <MdiClose
-              class="ml-2 hover:!text-black-500 text-gray-500 cursor-pointer"
-              :data-testid="`select-column-option-remove-${index}`"
-              @click="removeOption(index)"
-            />
+            <a-popconfirm :cancel-text="`${t('general.no')}`" @confirm="removeOption(index)">
+              <template #title>
+                <span class="whitespace-pre-wrap">
+                  {{ t('msg.info.confirmOptionRemoval') }}
+                </span>
+              </template>
+
+              <template #okText>
+                <span data-testid="confirm-option-removal"> {{ t('general.yes') }}</span>
+              </template>
+
+              <MdiClose
+                class="ml-2 hover:!text-black-500 text-gray-500 cursor-pointer"
+                :data-testid="`select-column-option-remove-${index}`"
+              />
+            </a-popconfirm>
           </div>
         </template>
       </Draggable>
