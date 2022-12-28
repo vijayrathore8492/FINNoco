@@ -4,6 +4,7 @@ const createFilter = async (
   filterInfo: {
     fk_view_id: string, 
     fk_column_id: string, 
+    fk_hook_id?: string,
     comparison_op?, 
     fk_parent_id?: string,
     is_group?: boolean,

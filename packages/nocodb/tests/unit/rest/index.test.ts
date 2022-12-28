@@ -20,6 +20,8 @@ import GridViewTests from './tests/gridView.test';
 import KanbanViewTests from './tests/kanbanView.test';
 import SortTests from './tests/sort.test';
 import FilterTests from './tests/filter.test';
+import hookTests from './tests/hook.test';
+import HookFilterTests from './tests/hookFilter.test';
 import chai from 'chai';
 chai.use(require('chai-subset'));
 
@@ -45,6 +47,8 @@ function restTests() {
   KanbanViewTests();
   SortTests();
   FilterTests();
+  hookTests();
+  HookFilterTests();
 }
 
 export default function () {
