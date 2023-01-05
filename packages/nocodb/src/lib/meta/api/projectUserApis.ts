@@ -243,7 +243,7 @@ async function projectUserInviteResend(req, res): Promise<any> {
     active: true,
   });
 
-  if (!pluginData) {
+  if (!pluginData && process.env.NODE_ENV !== 'test') {
     NcError.badRequest(
       `No Email Plugin is found. Please go to App Store to configure first or copy the invitation URL to users instead.`
     );

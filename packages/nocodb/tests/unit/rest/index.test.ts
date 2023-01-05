@@ -10,6 +10,7 @@ import apiTokenTests from './tests/apiToken.test';
 import attachmentTests from './tests/attachment.test';
 import auditTests from './tests/audit.test';
 import columnTests from './tests/column.test';
+import ProjectUserTests from './tests/projectUser.test';
 import chai from 'chai';
 chai.use(require('chai-subset'));
 
@@ -25,6 +26,7 @@ function restTests() {
   attachmentTests();
   auditTests();
   columnTests();
+  ProjectUserTests();
 }
 
 export default function () {
