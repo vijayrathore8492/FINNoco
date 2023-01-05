@@ -1,9 +1,11 @@
 import { ViewTypes } from 'nocodb-sdk';
 import request from 'supertest';
+import FormView from '../../../src/lib/models/FormView';
+import GalleryView from '../../../src/lib/models/GalleryView';
 import Model from '../../../src/lib/models/Model';
 import View from '../../../src/lib/models/View';
 
-const createView = async (context, {title, table, type}: {title: string, table: Model, type: ViewTypes}) => {
+const createView = async (context, { title, table, type }: { title: string, table: Model, type: ViewTypes }) => {
   const viewTypeStr = (type) => {
     switch (type) {
       case ViewTypes.GALLERY:
@@ -26,13 +28,41 @@ const createView = async (context, {title, table, type}: {title: string, table: 
       title,
       type,
     });
-  if(response.status !== 200) {
-    throw new Error('createView',response.body.message);
+  if (response.status !== 200) {
+    throw new Error('createView', response.body.message);
   }
 
-  const view = await View.getByTitleOrId({fk_model_id: table.id, titleOrId:title}) as View;
-  
+  const view = await View.getByTitleOrId({ fk_model_id: table.id, titleOrId: title }) as View;
+
   return view
 }
 
-export {createView}
+const getView = async (tableId, viewTitle) => {
+  return await View.getByTitleOrId({ fk_model_id: tableId, titleOrId: viewTitle }) as View;
+}
+
+const getFormView = async (formViewId: string) => {
+  return await FormView.get(formViewId) as FormView;
+}
+
+const getGalleryView = async (galleryViewId: string) => {
+  return await GalleryView.get(galleryViewId) as GalleryView;
+}
+
+const shareView = async (viewId: string) => {
+  return await View.share(viewId)
+}
+
+const getAllSharedViews = async (tableId: string) => {
+  return await View.shareViewList(tableId);
+}
+
+const insertOrUpdateColumnInView = async (viewId, columnId, colData) => {
+  return await View.insertOrUpdateColumn(
+    viewId,
+    columnId,
+    colData
+  );
+}
+
+export { createView, getView, shareView, getAllSharedViews, insertOrUpdateColumnInView, getFormView, getGalleryView }

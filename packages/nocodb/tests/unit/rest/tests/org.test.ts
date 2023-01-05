@@ -166,7 +166,7 @@ function authTests() {
 
   })
 
-  it.only('Disable/Enable signup', async () => {
+  it('Disable/Enable signup', async () => {
     const args = {
       email: 'dummyuser@example.com',
       password: 'A1234abh2@dsad',
