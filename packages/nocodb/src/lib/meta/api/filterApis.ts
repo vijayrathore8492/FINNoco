@@ -17,8 +17,7 @@ import { metaApiMetrics } from '../helpers/apiMetrics';
 // @ts-ignore
 export async function filterGet(req: Request, res: Response, next) {
   try {
-    const filter = await Filter.getFilterObject({ viewId: req.params.viewId });
-
+    const filter = await Filter.get(req.params.filterId);
     res.json(filter);
   } catch (e) {
     console.log(e);
@@ -83,7 +82,6 @@ export async function filterUpdate(req, res, next) {
   try {
     const filter = await Filter.update(req.params.filterId, {
       ...req.body,
-      fk_view_id: req.params.viewId,
     });
     Tele.emit('evt', { evt_type: 'filter:updated' });
     res.json(filter);
