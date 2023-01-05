@@ -16,6 +16,9 @@ import ViewTests from './tests/view.test';
 import ViewColumnTests from './tests/viewColumn.test';
 import FormViewTests from './tests/formview.test';
 import GalleryViewTests from './tests/galleryView.test';
+import GridViewTests from './tests/gridView.test';
+import KanbanViewTests from './tests/kanbanView.test';
+import SortTests from './tests/sort.test';
 import chai from 'chai';
 chai.use(require('chai-subset'));
 
@@ -37,6 +40,9 @@ function restTests() {
   ViewColumnTests();
   FormViewTests();
   GalleryViewTests();
+  GridViewTests();
+  KanbanViewTests();
+  SortTests();
 }
 
 export default function () {

@@ -2,6 +2,7 @@ import { ViewTypes } from 'nocodb-sdk';
 import request from 'supertest';
 import FormView from '../../../src/lib/models/FormView';
 import GalleryView from '../../../src/lib/models/GalleryView';
+import KanbanView from '../../../src/lib/models/KanbanView';
 import Model from '../../../src/lib/models/Model';
 import View from '../../../src/lib/models/View';
 
@@ -49,6 +50,9 @@ const getGalleryView = async (galleryViewId: string) => {
   return await GalleryView.get(galleryViewId) as GalleryView;
 }
 
+const getKanbanView = async (kanbanViewId: string) => {
+  return await KanbanView.get(kanbanViewId) as KanbanView;
+}
 const shareView = async (viewId: string) => {
   return await View.share(viewId)
 }
@@ -65,4 +69,13 @@ const insertOrUpdateColumnInView = async (viewId, columnId, colData) => {
   );
 }
 
-export { createView, getView, shareView, getAllSharedViews, insertOrUpdateColumnInView, getFormView, getGalleryView }
+export { 
+  createView, 
+  getView, 
+  shareView, 
+  getAllSharedViews, 
+  insertOrUpdateColumnInView, 
+  getFormView, 
+  getGalleryView, 
+  getKanbanView 
+}
