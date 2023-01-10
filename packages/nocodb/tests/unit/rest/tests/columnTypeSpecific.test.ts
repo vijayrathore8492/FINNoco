@@ -9,7 +9,6 @@ import Model from '../../../../src/lib/models/Model';
 import Project from '../../../../src/lib/models/Project';
 import { expect } from 'chai';
 import Column from '../../../../src/lib/models/Column';
-import { title } from 'process';
 
 function columnTypeSpecificTests() {
   let context;
@@ -39,7 +38,7 @@ function columnTypeSpecificTests() {
         title: qrValueReferenceColumnTitle,
         uidt: UITypes.SingleLineText,
         table_name: customerTable.table_name,
-        column_name: title,
+        column_name: qrValueReferenceColumnTitle,
       });
     });
     describe('adding a QR code column which references another column ', async () => {
