@@ -156,7 +156,7 @@ export default class View implements ViewType {
           ],
         }
       );
-      if (!view) return;
+      if (!view) return null;
       // todo: cache - titleOrId can be viewId so we need a different scope here
       await NocoCache.set(
         `${CacheScope.VIEW}:${fk_model_id}:${titleOrId}`,
