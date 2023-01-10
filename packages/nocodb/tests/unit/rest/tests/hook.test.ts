@@ -50,7 +50,6 @@ function HookTests() {
             url: null,
             headers: null,
             condition: null,
-            notification: null,
             retries: null,
             retry_interval: null,
             timeout: null,
