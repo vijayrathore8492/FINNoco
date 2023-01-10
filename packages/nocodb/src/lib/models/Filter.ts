@@ -90,9 +90,9 @@ export default class Filter {
       }),
     };
     if (!(filter.project_id && filter.base_id)) {
-      const model = await Column.get({ colId: filter.fk_column_id }, ncMeta);
-      insertObj.project_id = model.project_id;
-      insertObj.base_id = model.base_id;
+      const model = await View.get(filter.fk_view_id, ncMeta);
+      insertObj.project_id = insertObj.project_id ?? model.project_id;
+      insertObj.base_id = insertObj.base_id ?? model.base_id;
     }
 
     const row = await ncMeta.metaInsert2(
