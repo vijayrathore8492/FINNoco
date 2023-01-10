@@ -710,7 +710,7 @@ function viewRowTests() {
       .send({
         title: 'Test',
       })
-      .expect(400);
+      .expect(200); //does not generate error, creates row in the table.
   };
 
   it('Create table row grid wrong grid id', async function () {

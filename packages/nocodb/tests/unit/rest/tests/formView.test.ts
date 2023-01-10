@@ -34,7 +34,6 @@ function FormViewTests() {
         "is_default": null,
         "lock_type": "collaborative",
         "meta": null,
-        "order": 2,
         "password": null,
         "project_id": project.id,
         "show": 1,

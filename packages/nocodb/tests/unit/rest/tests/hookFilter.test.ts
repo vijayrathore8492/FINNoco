@@ -203,7 +203,7 @@ function HookFilterTests() {
         .expect(200);
   
       const updatedHookFilter = await getFilter(hookFilter.id);
-      expect(updatedHookFilter.comparison_op).to.be.undefined;
+      expect(updatedHookFilter).to.be.undefined;
     });
   })
 

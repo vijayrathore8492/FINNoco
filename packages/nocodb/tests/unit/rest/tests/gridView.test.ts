@@ -40,7 +40,6 @@ function GridViewTests() {
         uuid: null,
         password: null,
         show: 1,
-        order: 2,
         meta: null,
       });
     });

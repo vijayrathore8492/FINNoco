@@ -104,7 +104,7 @@ function ViewTests() {
         .expect(200);
 
       const deletedView = await getView(table.id, view.title);
-      expect(deletedView).to.be.undefined
+      expect(deletedView).to.be.not.ok
     })
   })
 

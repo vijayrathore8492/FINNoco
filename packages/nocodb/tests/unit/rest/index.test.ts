@@ -14,7 +14,7 @@ import ProjectUserTests from './tests/projectUser.test';
 import PluginTests from './tests/plugin.test';
 import ViewTests from './tests/view.test';
 import ViewColumnTests from './tests/viewColumn.test';
-import FormViewTests from './tests/formview.test';
+import FormViewTests from './tests/formView.test';
 import GalleryViewTests from './tests/galleryView.test';
 import GridViewTests from './tests/gridView.test';
 import KanbanViewTests from './tests/kanbanView.test';

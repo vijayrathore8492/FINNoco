@@ -2,7 +2,7 @@ import { expect } from 'chai';
 import 'mocha';
 import request from 'supertest';
 import init from '../../init';
-import { createUser, defaultUserArgs, AddResetPasswordToken } from '../../factory/user';
+import { createUser, defaultUserArgs, addResetPasswordToken } from '../../factory/user';
 const { v4: uuidv4 } = require('uuid');
 
 function authTests() {
@@ -239,7 +239,7 @@ function authTests() {
   it('Reset Password with an valid token', async () => {
     const { user } = await createUser(context, { email: 'reset-password@email.com' })
     const token = uuidv4();
-    await AddResetPasswordToken(user, token, new Date(Date.now() + 60 * 1000));
+    await addResetPasswordToken(user, token, new Date(Date.now() + 60 * 1000));
     const response = await request(context.app)
       .post(`/api/v1/auth/password/reset/${token}`)
       .send({ email: user.email, password: `New ${defaultUserArgs.password}` })
@@ -253,7 +253,7 @@ function authTests() {
   it('Reset Password with an expired token generate errors', async () => {
     const { user } = await createUser(context, { email: 'expired-reset-token@email.com' })
     const token = uuidv4();
-    await AddResetPasswordToken(user, token, new Date(Date.now() - 60 * 1000));
+    await addResetPasswordToken(user, token, new Date(Date.now() - 60 * 1000));
     const response = await request(context.app)
       .post(`/api/v1/auth/password/reset/${token}`)
       .send({ email: user.email, password: `New ${defaultUserArgs.password}` })
@@ -267,7 +267,7 @@ function authTests() {
   it('Reset Password with invalid new password generate errors', async () => {
     const { user } = await createUser(context, { email: 'invalid-new-password@email.com' })
     const token = uuidv4();
-    await AddResetPasswordToken(user, token, new Date(Date.now() + 60 * 1000));
+    await addResetPasswordToken(user, token, new Date(Date.now() + 60 * 1000));
     const response = await request(context.app)
       .post(`/api/v1/auth/password/reset/${token}`)
       .send({ 
@@ -307,7 +307,7 @@ function authTests() {
   it('Token validate with a valid token', async () => {
     const { user } = await createUser(context, { email: 'valid-token@email.com' })
     const token = uuidv4();
-    await AddResetPasswordToken(user, token, new Date(Date.now() + 60 * 1000));
+    await addResetPasswordToken(user, token, new Date(Date.now() + 60 * 1000));
     const response = await request(context.app)
       .post(`/auth/token/validate/${token}`)
       .send({email: user.email})
@@ -331,7 +331,7 @@ function authTests() {
   it('Token validate with an expired token', async () => {
     const { user } = await createUser(context, { email: 'expired-token@email.com' })
     const token = uuidv4();
-    await AddResetPasswordToken(user, token, new Date(Date.now() - 60 * 1000));
+    await addResetPasswordToken(user, token, new Date(Date.now() - 60 * 1000));
     const response = await request(context.app)
       .post(`/auth/token/validate/${token}`)
       .send({email: user.email})

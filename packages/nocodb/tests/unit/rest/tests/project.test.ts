@@ -485,7 +485,14 @@ function projectTest() {
       .set('xc-auth', context.token)
       .send()
       .expect(200)
-    expect(response.body).to.deep.equal([])
+    expect(response.body).to.deep.equal([
+      {
+        "detectedChanges": [],
+        "table_name": table.table_name,
+        "title": table.title,
+        "type": "table",
+      }
+    ])
   })
 
 
