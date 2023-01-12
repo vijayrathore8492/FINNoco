@@ -702,7 +702,7 @@ export async function columnSetAsPrimary(req: Request, res: Response) {
   res.json(await Model.updatePrimaryColumn(column.fk_model_id, column.id));
 }
 
-export async function columnUpdate(req: Request, res: Response<TableType>) {
+export async function columnUpdate(req, res: Response<TableType>) {
   const column = await Column.get({ colId: req.params.columnId });
 
   const table = await Model.getWithInfo({
@@ -788,6 +788,7 @@ export async function columnUpdate(req: Request, res: Response<TableType>) {
     const baseModel = await Model.getBaseModelSQL({
       id: table.id,
       dbDriver: NcConnectionMgrv2.get(base),
+      userRoles: req?.session?.passport?.user?.roles,
     });
 
     if (colBody.colOptions?.options) {

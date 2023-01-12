@@ -16,6 +16,7 @@ import * as nc_020_kanban_view from './v2/nc_020_kanban_view';
 import * as nc_021_add_fields_in_token from './v2/nc_021_add_fields_in_token';
 import * as nc_022_qr_code_column_type from './v2/nc_022_qr_code_column_type';
 import * as nc_118_copy_user_id_to_fk_user_id_nc_tokens_finnoco from './v2/nc_118_copy_user_id_to_fk_user_id_nc_tokens_finnoco';
+import * as nc_119_add_visibility_rules_in_column from './v2/nc_119_add_visibility_rules_in_column';
 
 // Create a custom migration source class
 export default class XcMigrationSourcev2 {
@@ -43,6 +44,7 @@ export default class XcMigrationSourcev2 {
       'nc_021_add_fields_in_token',
       'nc_022_qr_code_column_type',
       'nc_118_copy_user_id_to_fk_user_id_nc_tokens_finnoco',
+      'nc_119_add_visibility_rules_in_column',
     ]);
   }
 
@@ -88,6 +90,8 @@ export default class XcMigrationSourcev2 {
         return nc_022_qr_code_column_type;
       case 'nc_118_copy_user_id_to_fk_user_id_nc_tokens_finnoco':
         return nc_118_copy_user_id_to_fk_user_id_nc_tokens_finnoco;
+      case 'nc_119_add_visibility_rules_in_column':
+        return nc_119_add_visibility_rules_in_column;
     }
   }
 }

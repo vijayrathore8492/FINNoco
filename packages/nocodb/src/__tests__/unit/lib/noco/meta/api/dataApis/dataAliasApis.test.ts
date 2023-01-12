@@ -61,7 +61,8 @@ describe('getFindOne', () => {
       baseModelFake.calledWith({
         id: model.id,
         viewId: view.id,
-        dbDriver: dbDriver
+        dbDriver: dbDriver,
+        userRoles: undefined
       })
     ).to.be.true;
   });

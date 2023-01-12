@@ -73,6 +73,7 @@ class BaseModelSqlv2 {
   protected viewId: string;
   private _proto: any;
   private _columns = {};
+  private _userRoles = {};
 
   private config: any = {
     limitDefault: Math.max(+process.env.DB_QUERY_LIMIT_DEFAULT || 25, 1),
@@ -84,13 +85,16 @@ class BaseModelSqlv2 {
     dbDriver,
     model,
     viewId,
+    userRoles,
   }: {
     [key: string]: any;
     model: Model;
+    userRoles?: Record<string, boolean>;
   }) {
     this.dbDriver = dbDriver;
     this.model = model;
     this.viewId = viewId;
+    this._userRoles = userRoles ?? {};
     autoBind(this);
   }
 
@@ -1433,7 +1437,8 @@ class BaseModelSqlv2 {
     columns?: Column[];
   }): Promise<void> {
     const res = {};
-    const columns = _columns ?? (await this.model.getColumns());
+    let columns = _columns ?? (await this.model.getColumns());
+    columns = BaseModelSqlv2.filterColumnsByUserRoles(columns, this._userRoles);
     for (const column of columns) {
       switch (column.uidt) {
         case 'LinkToAnotherRecord':
@@ -1511,12 +1516,48 @@ class BaseModelSqlv2 {
     qb.select(res);
   }
 
+  public static filterColumnsByUserRoles(columns, userRoles) {
+    return columns.filter((column) => {
+      if (
+        !userRoles ||
+        userRoles['super'] ||
+        !column?.visibility_rules?.length
+      ) {
+        return true;
+      }
+
+      const rolesWithNoAccess = column.visibility_rules.find(
+        (rule) => rule.access === 'deny'
+      )?.roles;
+
+      if (
+        rolesWithNoAccess &&
+        rolesWithNoAccess.some((role) => userRoles[role])
+      ) {
+        return false;
+      }
+
+      const rolesWithReadOrWriteAccess = column.visibility_rules.find(
+        (rule) => rule.access === 'allow'
+      )?.roles;
+
+      if (
+        rolesWithReadOrWriteAccess &&
+        rolesWithReadOrWriteAccess.some((role) => userRoles[role])
+      ) {
+        return true;
+      }
+
+      return !rolesWithNoAccess && !rolesWithReadOrWriteAccess;
+    });
+  }
+
   async insert(data, trx?, cookie?) {
     try {
       await populatePk(this.model, data);
 
       // todo: filter based on view
-      const insertObj = await this.model.mapAliasToColumn(data);
+      const insertObj = await this.mapAliasToColumn(data);
 
       await this.validate(insertObj);
 
@@ -1660,7 +1701,7 @@ class BaseModelSqlv2 {
 
   async updateByPk(id, data, trx?, cookie?) {
     try {
-      const updateObj = await this.model.mapAliasToColumn(data);
+      const updateObj = await this.mapAliasToColumn(data);
 
       await this.validate(data);
 
@@ -1680,6 +1721,25 @@ class BaseModelSqlv2 {
       await this.errorUpdate(e, data, trx, cookie);
       throw e;
     }
+  }
+
+  private async mapAliasToColumn(data) {
+    const insertObj = {};
+    const columns = BaseModelSqlv2.filterColumnsByUserRoles(
+      await this.model.getColumns(),
+      this._userRoles
+    );
+    for (const col of columns) {
+      if (isVirtualCol(col)) continue;
+      const val =
+        data?.[col.column_name] !== undefined
+          ? data?.[col.column_name]
+          : data?.[col.title];
+      if (val !== undefined) {
+        insertObj[sanitize(col.column_name)] = val;
+      }
+    }
+    return insertObj;
   }
 
   async _wherePk(id) {
@@ -1724,7 +1784,7 @@ class BaseModelSqlv2 {
     // const driver = trx ? trx : await this.dbDriver.transaction();
     try {
       await populatePk(this.model, data);
-      const insertObj = await this.model.mapAliasToColumn(data);
+      const insertObj = await this.mapAliasToColumn(data);
 
       let rowId = null;
       const postInsertOps = [];
@@ -1868,7 +1928,7 @@ class BaseModelSqlv2 {
       const insertDatas = await Promise.all(
         datas.map(async (d) => {
           await populatePk(this.model, d);
-          return this.model.mapAliasToColumn(d);
+          return this.mapAliasToColumn(d);
         })
       );
 
@@ -1919,7 +1979,7 @@ class BaseModelSqlv2 {
     let transaction;
     try {
       const updateDatas = await Promise.all(
-        datas.map((d) => this.model.mapAliasToColumn(d))
+        datas.map((d) => this.mapAliasToColumn(d))
       );
 
       transaction = await this.dbDriver.transaction();
@@ -1961,7 +2021,7 @@ class BaseModelSqlv2 {
   ) {
     let queryResponse;
     try {
-      const updateData = await this.model.mapAliasToColumn(data);
+      const updateData = await this.mapAliasToColumn(data);
       await this.validate(updateData);
       const pkValues = await this._extractPksValues(updateData);
       if (pkValues) {

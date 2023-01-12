@@ -61,6 +61,7 @@ describe('getFindOne', () => {
         id: model.id,
         viewId: view.id,
         dbDriver: dbDriver,
+        userRoles: undefined
       })
     ).to.be.true;
   });

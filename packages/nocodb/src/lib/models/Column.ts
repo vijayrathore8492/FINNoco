@@ -11,6 +11,7 @@ import {
   AllowedColumnTypesForQrCode,
   ColumnType,
   UITypes,
+  ColumnVisibilityRuleType,
 } from 'nocodb-sdk';
 import {
   CacheDelDirection,
@@ -63,6 +64,7 @@ export default class Column<T = any> implements ColumnType {
 
   public validate: any;
   public meta: any;
+  public visibility_rules?: ColumnVisibilityRuleType[];
   public public: boolean;
 
   constructor(data: Partial<ColumnType | Column>) {
@@ -119,6 +121,7 @@ export default class Column<T = any> implements ColumnType {
         column.meta && typeof column.meta === 'object'
           ? JSON.stringify(column.meta)
           : column.meta,
+      visibility_rules: JSON.stringify(column.visibility_rules ?? []),
       public: column.public === true,
     };
 
@@ -475,6 +478,7 @@ export default class Column<T = any> implements ColumnType {
             column.meta = {};
           }
         }
+        column.visibility_rules = JSON.parse(column.visibility_rules ?? '[]');
       });
 
       await NocoCache.setList(CacheScope.COLUMN, [fk_model_id], columnsList);
@@ -560,6 +564,7 @@ export default class Column<T = any> implements ColumnType {
         } catch {
           colData.meta = {};
         }
+        colData.visibility_rules = JSON.parse(colData.visibility_rules ?? '[]');
         await NocoCache.set(`${CacheScope.COLUMN}:${colId}`, colData);
       }
     }
@@ -948,6 +953,9 @@ export default class Column<T = any> implements ColumnType {
       system: column.system,
       validate: null,
       meta: column.meta,
+      visibility_rules: JSON.stringify(
+        column.visibility_rules ?? oldCol.visibility_rules ?? []
+      ),
     };
 
     if (column.validate) {

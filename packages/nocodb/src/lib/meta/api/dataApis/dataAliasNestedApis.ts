@@ -1,4 +1,4 @@
-import { Request, Response, Router } from 'express';
+import { Response, Router } from 'express';
 import Model from '../../../models/Model';
 import Base from '../../../models/Base';
 import NcConnectionMgrv2 from '../../../utils/common/NcConnectionMgrv2';
@@ -12,7 +12,7 @@ import { NcError } from '../../helpers/catchError';
 import apiMetrics from '../../helpers/apiMetrics';
 
 // todo: handle case where the given column is not ltar
-export async function mmList(req: Request, res: Response, next) {
+export async function mmList(req, res: Response, next) {
   const { model, view } = await getViewAndModelFromRequestByAliasOrId(req);
 
   if (!model) return next(new Error('Table not found'));
@@ -23,6 +23,7 @@ export async function mmList(req: Request, res: Response, next) {
     id: model.id,
     viewId: view?.id,
     dbDriver: NcConnectionMgrv2.get(base),
+    userRoles: req?.session?.passport?.user?.roles,
   });
 
   const column = await getColumnByIdOrName(req.params.columnName, model);
@@ -47,7 +48,7 @@ export async function mmList(req: Request, res: Response, next) {
   );
 }
 
-export async function mmExcludedList(req: Request, res: Response, next) {
+export async function mmExcludedList(req, res: Response, next) {
   const { model, view } = await getViewAndModelFromRequestByAliasOrId(req);
   if (!model) return next(new Error('Table not found'));
 
@@ -57,6 +58,7 @@ export async function mmExcludedList(req: Request, res: Response, next) {
     id: model.id,
     viewId: view?.id,
     dbDriver: NcConnectionMgrv2.get(base),
+    userRoles: req?.session?.passport?.user?.roles,
   });
   const column = await getColumnByIdOrName(req.params.columnName, model);
 
@@ -84,7 +86,7 @@ export async function mmExcludedList(req: Request, res: Response, next) {
   );
 }
 
-export async function hmExcludedList(req: Request, res: Response, next) {
+export async function hmExcludedList(req, res: Response, next) {
   const { model, view } = await getViewAndModelFromRequestByAliasOrId(req);
 
   if (!model) return next(new Error('Table not found'));
@@ -95,6 +97,7 @@ export async function hmExcludedList(req: Request, res: Response, next) {
     id: model.id,
     viewId: view?.id,
     dbDriver: NcConnectionMgrv2.get(base),
+    userRoles: req?.session?.passport?.user?.roles,
   });
 
   const column = await getColumnByIdOrName(req.params.columnName, model);
@@ -123,7 +126,7 @@ export async function hmExcludedList(req: Request, res: Response, next) {
   );
 }
 
-export async function btExcludedList(req: Request, res: Response, next) {
+export async function btExcludedList(req, res: Response, next) {
   const { model, view } = await getViewAndModelFromRequestByAliasOrId(req);
   if (!model) return next(new Error('Table not found'));
 
@@ -133,6 +136,7 @@ export async function btExcludedList(req: Request, res: Response, next) {
     id: model.id,
     viewId: view?.id,
     dbDriver: NcConnectionMgrv2.get(base),
+    userRoles: req?.session?.passport?.user?.roles,
   });
 
   const column = await getColumnByIdOrName(req.params.columnName, model);
@@ -162,7 +166,7 @@ export async function btExcludedList(req: Request, res: Response, next) {
 }
 
 // todo: handle case where the given column is not ltar
-export async function hmList(req: Request, res: Response, next) {
+export async function hmList(req, res: Response, next) {
   const { model, view } = await getViewAndModelFromRequestByAliasOrId(req);
   if (!model) return next(new Error('Table not found'));
 
@@ -172,6 +176,7 @@ export async function hmList(req: Request, res: Response, next) {
     id: model.id,
     viewId: view?.id,
     dbDriver: NcConnectionMgrv2.get(base),
+    userRoles: req?.session?.passport?.user?.roles,
   });
 
   const column = await getColumnByIdOrName(req.params.columnName, model);
@@ -209,6 +214,7 @@ async function relationDataRemove(req, res) {
     id: model.id,
     viewId: view?.id,
     dbDriver: NcConnectionMgrv2.get(base),
+    userRoles: req?.session?.passport?.user?.roles,
   });
 
   const column = await getColumnByIdOrName(req.params.columnName, model);
@@ -235,6 +241,7 @@ async function relationDataAdd(req, res) {
     id: model.id,
     viewId: view?.id,
     dbDriver: NcConnectionMgrv2.get(base),
+    userRoles: req?.session?.passport?.user?.roles,
   });
 
   const column = await getColumnByIdOrName(req.params.columnName, model);

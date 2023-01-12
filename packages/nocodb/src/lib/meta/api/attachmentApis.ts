@@ -7,20 +7,20 @@ import slash from 'slash';
 import mimetypes, { mimeIcons } from '../../utils/mimeTypes';
 import { Tele } from 'nc-help';
 import ncMetaAclMw from '../helpers/ncMetaAclMw';
-import catchError from '../helpers/catchError';
+import catchError, { NcError } from '../helpers/catchError';
 import NcPluginMgrv2 from '../helpers/NcPluginMgrv2';
 import Model from '../../../lib/models/Model';
 import Project from '../../../lib/models/Project';
 import S3 from '../../plugins/s3/S3';
 import NcConnectionMgrv2 from '../../utils/common/NcConnectionMgrv2';
 import { NC_ATTACHMENT_FIELD_SIZE } from '../../constants';
+import { BaseModelSqlv2 } from '../../db/sql-data-mapper/lib/sql/BaseModelSqlv2';
+import Base from '../../models/Base';
+import Column from '../../models/Column';
 
 // const storageAdapter = new Local();
 export async function upload(req: Request, res: Response) {
-  const filePath = sanitizeUrlPath(
-    req.query?.path?.toString()?.split('/') || ['']
-  );
-  const { column } = await getInfoFromFilePath(filePath);
+  const { column, filePath } = await extractInfoFromRequest(req);
   const attachments = await uploadAttachment(
     filePath,
     column,
@@ -33,11 +33,8 @@ export async function upload(req: Request, res: Response) {
   res.json(attachments);
 }
 
-export async function uploadWithUpdate(req: Request, res: Response) {
-  const filePath = sanitizeUrlPath(
-    req.query?.path?.toString()?.split('/') || ['']
-  );
-  const { model, base, column } = await getInfoFromFilePath(filePath);
+export async function uploadWithUpdate(req, res: Response) {
+  const { model, base, column, filePath } = await extractInfoFromRequest(req);
   const attachments = await uploadAttachment(
     filePath,
     column,
@@ -50,6 +47,7 @@ export async function uploadWithUpdate(req: Request, res: Response) {
   const baseModel = await Model.getBaseModelSQL({
     id: model.id,
     dbDriver: NcConnectionMgrv2.get(base),
+    userRoles: req?.session?.passport?.user?.roles,
   });
   const oldRowData = await baseModel.readByPk(req.params.rowId);
   let oldAttachmentColumnData = JSON.parse(oldRowData[column['title']] || '[]');
@@ -135,6 +133,9 @@ export async function fileRead(req, res) {
 }
 
 async function uploadAttachment(filePath, column, files, ncSiteUrl) {
+  if (!column) {
+    NcError.badRequest(`Attachment column is invalid.`);
+  }
   const destPath = path.join('nc', 'uploads', ...filePath);
 
   const storageAdapter = await NcPluginMgrv2.storageAdapter();
@@ -164,7 +165,15 @@ async function uploadAttachment(filePath, column, files, ncSiteUrl) {
   );
 }
 
-async function getInfoFromFilePath(filePath: Array<string>) {
+async function extractInfoFromRequest(req): Promise<{
+  model: Model;
+  base: Base;
+  column: Column | undefined;
+  filePath: string;
+}> {
+  const filePath = sanitizeUrlPath(
+    req.query?.path?.toString()?.split('/') || ['']
+  );
   const [_, projectName, tableName, columnName] = filePath;
   const project = await Project.getWithInfoByTitle(projectName);
   const base = project.bases[0];
@@ -173,11 +182,15 @@ async function getInfoFromFilePath(filePath: Array<string>) {
     base_id: base.id,
     aliasOrId: tableName,
   });
-  const columns = await model.getColumns();
+  const columns = BaseModelSqlv2.filterColumnsByUserRoles(
+    await model.getColumns(),
+    req?.session?.passport?.user?.roles
+  );
   return {
     model,
     base,
     column: columns.find((column) => column.column_name === columnName),
+    filePath,
   };
 }
 
