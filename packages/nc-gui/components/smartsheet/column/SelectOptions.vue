@@ -1,7 +1,15 @@
 <script setup lang="ts">
 import Draggable from 'vuedraggable'
 import { UITypes } from 'nocodb-sdk'
-import { IsKanbanInj, enumColor, onMounted, useColumnCreateStoreOrThrow, useI18n, useVModel, watch } from '#imports'
+import { IsKanbanInj, enumColor, onMounted, useColumnCreateStoreOrThrow, useVModel, watch } from '#imports'
+
+interface Option {
+  color: string
+  title: string
+  id?: string
+  fk_colum_id?: string
+  order?: number
+}
 
 const props = defineProps<{
   value: any
@@ -15,7 +23,10 @@ const { isPg, isMysql } = useProject()
 
 const { setAdditionalValidations, validateInfos } = useColumnCreateStoreOrThrow()
 
-let options = $ref<any[]>([])
+let options = $ref<Option[]>([])
+let renderedOptions = $ref<(Option & { status?: 'remove' })[]>([])
+let savedDefaultOption = $ref<Option | null>(null)
+let savedCdf = $ref<string | null>(null)
 
 const colorMenus = $ref<any>({})
 
@@ -49,8 +60,6 @@ const validators = {
   ],
 }
 
-const { t } = useI18n()
-
 setAdditionalValidations({
   ...validators,
 })
@@ -62,6 +71,9 @@ onMounted(() => {
     }
   }
   options = vModel.value.colOptions.options
+
+  renderedOptions = [...options]
+
   // Support for older options
   for (const op of options.filter((el) => el.order === null)) {
     op.title = op.title.replace(/^'/, '').replace(/'$/, '')
@@ -91,13 +103,6 @@ const optionChanged = (changedId: string) => {
   }
 }
 
-const optionDropped = (changedId: string) => {
-  if (changedId && changedId === defaultOption.value?.id) {
-    vModel.value.cdf = null
-    defaultOption.value = null
-  }
-}
-
 const getNextColor = () => {
   let tempColor = colors[0]
   if (options.length && options[options.length - 1].color) {
@@ -112,13 +117,29 @@ const addNewOption = () => {
     title: '',
     color: getNextColor(),
   }
-  options.push(tempOption)
+  renderedOptions.push(tempOption)
 }
 
-const removeOption = (index: number) => {
-  const optionId = options[index]?.id
-  options.splice(index, 1)
-  optionDropped(optionId)
+const removeRenderedOption = (index: number) => {
+  renderedOptions[index].status = 'remove'
+  const optionId = renderedOptions[index]?.id
+  if (optionId === defaultOption.value?.id) {
+    savedDefaultOption = { ...defaultOption.value }
+    savedCdf = vModel.value.cdf
+    defaultOption.value = null
+    vModel.value.cdf = null
+  }
+}
+
+const undoRemoveRenderedOption = (index: number) => {
+  renderedOptions[index].status = undefined
+  const optionId = renderedOptions[index]?.id
+  if (optionId === savedDefaultOption?.id) {
+    defaultOption.value = { ...savedDefaultOption }
+    vModel.value.cdf = savedCdf
+    savedDefaultOption = null
+    savedCdf = null
+  }
 }
 
 // focus last created input
@@ -127,64 +148,78 @@ watch(inputs, () => {
     inputs.value.$el.focus()
   }
 })
+
+watch(
+  () => renderedOptions,
+  () => {
+    vModel.value.colOptions.options = renderedOptions.filter((op) => {
+      return op.status !== 'remove'
+    })
+  },
+  { deep: true },
+)
 </script>
 
 <template>
   <div class="w-full">
     <div class="max-h-[250px] overflow-x-auto scrollbar-thin-dull pr-3">
-      <Draggable :list="options" item-key="id" handle=".nc-child-draggable-icon">
+      <Draggable :list="renderedOptions" item-key="id" handle=".nc-child-draggable-icon">
         <template #item="{ element, index }">
-          <div class="flex py-1 items-center nc-select-option">
-            <MdiDragVertical
-              v-if="!isKanban"
-              small
-              class="nc-child-draggable-icon handle"
-              :data-testid="`select-option-column-handle-icon-${element.title}`"
-            />
-            <a-dropdown
-              v-model:visible="colorMenus[index]"
-              :trigger="['click']"
-              overlay-class-name="nc-dropdown-select-color-options"
+          <div class="flex p-1 items-center nc-select-option">
+            <div
+              class="flex items-center w-full"
+              :data-testid="`select-column-option-${index}`"
+              :class="{ removed: element.status === 'remove' }"
             >
-              <template #overlay>
-                <LazyGeneralColorPicker
-                  v-model="element.color"
-                  :pick-button="true"
-                  @update:model-value="colorMenus[index] = false"
-                />
-              </template>
-              <MdiArrowDownDropCircle
-                class="mr-2 text-[1.5em] outline-0 hover:!text-[1.75em]"
-                :class="{ 'text-[1.75em]': colorMenus[index] }"
-                :style="{ color: element.color }"
+              <MdiDragVertical
+                v-if="!isKanban"
+                small
+                class="nc-child-draggable-icon handle"
+                :data-testid="`select-option-column-handle-icon-${element.title}`"
               />
-            </a-dropdown>
+              <a-dropdown
+                v-model:visible="colorMenus[index]"
+                :trigger="['click']"
+                overlay-class-name="nc-dropdown-select-color-options"
+              >
+                <template #overlay>
+                  <LazyGeneralColorPicker
+                    v-model="element.color"
+                    :pick-button="true"
+                    @update:model-value="colorMenus[index] = false"
+                  />
+                </template>
+                <MdiArrowDownDropCircle
+                  class="mr-2 text-[1.5em] outline-0 hover:!text-[1.75em]"
+                  :class="{ 'text-[1.75em]': colorMenus[index] }"
+                  :style="{ color: element.color }"
+                />
+              </a-dropdown>
 
-            <a-input
-              ref="inputs"
-              v-model:value="element.title"
-              class="caption"
-              :data-testid="`select-column-option-input-${index}`"
-              @keydown.enter.prevent="element.title?.trim() && addNewOption()"
-              @change="optionChanged(element.id)"
+              <a-input
+                ref="inputs"
+                v-model:value="element.title"
+                class="caption"
+                :data-testid="`select-column-option-input-${index}`"
+                :disabled="element.status === 'remove'"
+                @keydown.enter.prevent="element.title?.trim() && addNewOption()"
+                @change="optionChanged(element.id)"
+              />
+            </div>
+
+            <MdiClose
+              v-if="element.status !== 'remove'"
+              class="ml-2 hover:!text-black-500 text-gray-500 cursor-pointer"
+              :data-testid="`select-column-option-remove-${index}`"
+              @click="removeRenderedOption(index)"
             />
 
-            <a-popconfirm :cancel-text="`${t('general.no')}`" @confirm="removeOption(index)">
-              <template #title>
-                <span class="whitespace-pre-wrap">
-                  {{ t('msg.info.confirmOptionRemoval') }}
-                </span>
-              </template>
-
-              <template #okText>
-                <span data-testid="confirm-option-removal"> {{ t('general.yes') }}</span>
-              </template>
-
-              <MdiClose
-                class="ml-2 hover:!text-black-500 text-gray-500 cursor-pointer"
-                :data-testid="`select-column-option-remove-${index}`"
-              />
-            </a-popconfirm>
+            <MdiArrowULeftBottom
+              v-else
+              class="ml-2 hover:!text-black-500 text-gray-500 cursor-pointer"
+              :data-testid="`select-column-option-remove-undo-${index}`"
+              @click="undoRemoveRenderedOption(index)"
+            />
           </div>
         </template>
       </Draggable>
@@ -201,3 +236,19 @@ watch(inputs, () => {
     </a-button>
   </div>
 </template>
+
+<style scoped>
+.removed {
+  position: relative;
+}
+.removed:after {
+  position: absolute;
+  left: 0;
+  top: 50%;
+  height: 1px;
+  background: #ccc;
+  content: '';
+  width: calc(100% + 5px);
+  display: block;
+}
+</style>
