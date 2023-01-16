@@ -118,11 +118,19 @@ const addNewOption = () => {
     color: getNextColor(),
   }
   renderedOptions.push(tempOption)
+  options.push(tempOption)
+}
+
+const syncOptions = () => {
+  vModel.value.colOptions.options = renderedOptions.filter((op) => op.status !== 'remove')
 }
 
 const removeRenderedOption = (index: number) => {
   renderedOptions[index].status = 'remove'
+  syncOptions()
+
   const optionId = renderedOptions[index]?.id
+
   if (optionId === defaultOption.value?.id) {
     savedDefaultOption = { ...defaultOption.value }
     savedCdf = vModel.value.cdf
@@ -133,7 +141,10 @@ const removeRenderedOption = (index: number) => {
 
 const undoRemoveRenderedOption = (index: number) => {
   renderedOptions[index].status = undefined
+  syncOptions()
+
   const optionId = renderedOptions[index]?.id
+
   if (optionId === savedDefaultOption?.id) {
     defaultOption.value = { ...savedDefaultOption }
     vModel.value.cdf = savedCdf
@@ -148,22 +159,12 @@ watch(inputs, () => {
     inputs.value.$el.focus()
   }
 })
-
-watch(
-  () => renderedOptions,
-  () => {
-    vModel.value.colOptions.options = renderedOptions.filter((op) => {
-      return op.status !== 'remove'
-    })
-  },
-  { deep: true },
-)
 </script>
 
 <template>
   <div class="w-full">
     <div class="max-h-[250px] overflow-x-auto scrollbar-thin-dull pr-3">
-      <Draggable :list="renderedOptions" item-key="id" handle=".nc-child-draggable-icon">
+      <Draggable :list="renderedOptions" item-key="id" handle=".nc-child-draggable-icon" @change="syncOptions">
         <template #item="{ element, index }">
           <div class="flex p-1 items-center nc-select-option">
             <div
