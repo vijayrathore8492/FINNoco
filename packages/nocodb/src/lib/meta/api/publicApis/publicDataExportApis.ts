@@ -99,7 +99,7 @@ async function exportCsv(req: Request, res: Response) {
   res.send(data);
 }
 
-async function getDbRows(model, view: View, req: Request) {
+async function getDbRows(model, view: View, req) {
   view.model.columns = view.columns
     .filter((c) => c.show)
     .map(
@@ -123,6 +123,7 @@ async function getDbRows(model, view: View, req: Request) {
     id: model.id,
     viewId: view?.id,
     dbDriver: NcConnectionMgrv2.get(base),
+    userRoles: req?.session?.passport?.user?.roles,
   });
 
   const requestObj = await getAst({

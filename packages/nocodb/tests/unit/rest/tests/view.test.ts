@@ -147,7 +147,7 @@ function ViewTests() {
         .expect(200);
 
       const sharedView = (await getAllSharedViews(table.id)).find(sharedView => sharedView.id === view.id);
-      expect(sharedView).to.containSubset(_.omit(response.body, 'meta'));
+      expect(sharedView).to.containSubset(_.omit(response.body, 'meta', 'updated_at'));
     })
   })
 

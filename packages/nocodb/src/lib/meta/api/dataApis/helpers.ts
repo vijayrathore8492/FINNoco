@@ -37,7 +37,7 @@ export async function getViewAndModelFromRequestByAliasOrId(
   return { model, view };
 }
 
-export async function extractXlsxData(view: View, req: Request) {
+export async function extractXlsxData(view: View, req) {
   const base = await Base.get(view.base_id);
 
   await view.getModelWithInfo();
@@ -55,6 +55,7 @@ export async function extractXlsxData(view: View, req: Request) {
     id: view.model.id,
     viewId: view?.id,
     dbDriver: NcConnectionMgrv2.get(base),
+    userRoles: req?.session?.passport?.user?.roles,
   });
 
   const { offset, dbRows, elapsed } = await getDbRows(baseModel, view, req);
@@ -63,7 +64,7 @@ export async function extractXlsxData(view: View, req: Request) {
   return { offset, dbRows, elapsed, data };
 }
 
-export async function extractCsvData(view: View, req: Request) {
+export async function extractCsvData(view: View, req) {
   const base = await Base.get(view.base_id);
   const fields = req.query.fields;
 
@@ -82,6 +83,7 @@ export async function extractCsvData(view: View, req: Request) {
     id: view.model.id,
     viewId: view?.id,
     dbDriver: NcConnectionMgrv2.get(base),
+    userRoles: req?.session?.passport?.user?.roles,
   });
 
   const { offset, dbRows, elapsed } = await getDbRows(baseModel, view, req);

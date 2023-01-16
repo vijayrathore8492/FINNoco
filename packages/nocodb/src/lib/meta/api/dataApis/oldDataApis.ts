@@ -1,4 +1,4 @@
-import { Request, Response, Router } from 'express';
+import { Response, Router } from 'express';
 import Model from '../../../models/Model';
 import { nocoExecute } from 'nc-help';
 import Base from '../../../models/Base';
@@ -10,7 +10,7 @@ import { NcError } from '../../helpers/catchError';
 import apiMetrics from '../../helpers/apiMetrics';
 import getAst from '../../../db/sql-data-mapper/lib/sql/helpers/getAst';
 
-export async function dataList(req: Request, res: Response) {
+export async function dataList(req, res: Response) {
   const { model, view } = await getViewAndModelFromRequest(req);
   const base = await Base.get(model.base_id);
 
@@ -18,6 +18,7 @@ export async function dataList(req: Request, res: Response) {
     id: model.id,
     viewId: view?.id,
     dbDriver: NcConnectionMgrv2.get(base),
+    userRoles: req?.session?.passport?.user?.roles,
   });
 
   const requestObj = await getAst({
@@ -43,7 +44,7 @@ export async function dataList(req: Request, res: Response) {
 
   res.json(data);
 }
-export async function dataCount(req: Request, res: Response) {
+export async function dataCount(req, res: Response) {
   const { model, view } = await getViewAndModelFromRequest(req);
   const base = await Base.get(model.base_id);
 
@@ -51,6 +52,7 @@ export async function dataCount(req: Request, res: Response) {
     id: model.id,
     viewId: view?.id,
     dbDriver: NcConnectionMgrv2.get(base),
+    userRoles: req?.session?.passport?.user?.roles,
   });
 
   const listArgs: any = { ...req.query };
@@ -65,7 +67,7 @@ export async function dataCount(req: Request, res: Response) {
   });
 }
 
-async function dataInsert(req: Request, res: Response) {
+async function dataInsert(req, res: Response) {
   const { model, view } = await getViewAndModelFromRequest(req);
 
   const base = await Base.get(model.base_id);
@@ -74,12 +76,13 @@ async function dataInsert(req: Request, res: Response) {
     id: model.id,
     viewId: view?.id,
     dbDriver: NcConnectionMgrv2.get(base),
+    userRoles: req?.session?.passport?.user?.roles,
   });
 
   res.json(await baseModel.insert(req.body, null, req));
 }
 
-async function dataUpdate(req: Request, res: Response) {
+async function dataUpdate(req, res: Response) {
   const { model, view } = await getViewAndModelFromRequest(req);
   const base = await Base.get(model.base_id);
 
@@ -87,18 +90,20 @@ async function dataUpdate(req: Request, res: Response) {
     id: model.id,
     viewId: view.id,
     dbDriver: NcConnectionMgrv2.get(base),
+    userRoles: req?.session?.passport?.user?.roles,
   });
 
   res.json(await baseModel.updateByPk(req.params.rowId, req.body, null, req));
 }
 
-async function dataDelete(req: Request, res: Response) {
+async function dataDelete(req, res: Response) {
   const { model, view } = await getViewAndModelFromRequest(req);
   const base = await Base.get(model.base_id);
   const baseModel = await Model.getBaseModelSQL({
     id: model.id,
     viewId: view.id,
     dbDriver: NcConnectionMgrv2.get(base),
+    userRoles: req?.session?.passport?.user?.roles,
   });
 
   res.json(await baseModel.delByPk(req.params.rowId, null, req));
@@ -121,7 +126,7 @@ async function getViewAndModelFromRequest(req) {
   return { model, view };
 }
 
-async function dataRead(req: Request, res: Response) {
+async function dataRead(req, res: Response) {
   const { model, view } = await getViewAndModelFromRequest(req);
 
   const base = await Base.get(model.base_id);
@@ -130,6 +135,7 @@ async function dataRead(req: Request, res: Response) {
     id: model.id,
     viewId: view?.id,
     dbDriver: NcConnectionMgrv2.get(base),
+    userRoles: req?.session?.passport?.user?.roles,
   });
 
   res.json(

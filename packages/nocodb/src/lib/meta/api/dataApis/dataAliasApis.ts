@@ -3,7 +3,6 @@ import Model from '../../../models/Model';
 import { nocoExecute } from 'nc-help';
 import Base from '../../../models/Base';
 import NcConnectionMgrv2 from '../../../utils/common/NcConnectionMgrv2';
-// import { NcError } from '../../helpers/catchError';
 import { PagedResponseImpl } from '../../helpers/PagedResponse';
 import View from '../../../models/View';
 import ncMetaAclMw from '../../helpers/ncMetaAclMw';
@@ -27,7 +26,7 @@ async function dataGroupBy(req: Request, res: Response) {
   res.json(await getDataGroupBy(model, view, req));
 }
 
-async function dataCount(req: Request, res: Response) {
+async function dataCount(req, res: Response) {
   const { model, view } = await getViewAndModelFromRequestByAliasOrId(req);
 
   const base = await Base.get(model.base_id);
@@ -36,6 +35,7 @@ async function dataCount(req: Request, res: Response) {
     id: model.id,
     viewId: view?.id,
     dbDriver: NcConnectionMgrv2.get(base),
+    userRoles: req?.session?.passport?.user?.roles,
   });
 
   const countArgs: any = { ...req.query };
@@ -49,7 +49,7 @@ async function dataCount(req: Request, res: Response) {
 }
 
 // todo: Handle the error case where view doesnt belong to model
-async function dataInsert(req: Request, res: Response) {
+async function dataInsert(req, res: Response) {
   const { model, view } = await getViewAndModelFromRequestByAliasOrId(req);
 
   const base = await Base.get(model.base_id);
@@ -58,12 +58,13 @@ async function dataInsert(req: Request, res: Response) {
     id: model.id,
     viewId: view?.id,
     dbDriver: NcConnectionMgrv2.get(base),
+    userRoles: req?.session?.passport?.user?.roles,
   });
 
   res.json(await baseModel.insert(req.body, null, req));
 }
 
-async function dataUpdate(req: Request, res: Response) {
+async function dataUpdate(req, res: Response) {
   const { model, view } = await getViewAndModelFromRequestByAliasOrId(req);
   const base = await Base.get(model.base_id);
 
@@ -71,18 +72,20 @@ async function dataUpdate(req: Request, res: Response) {
     id: model.id,
     viewId: view?.id,
     dbDriver: NcConnectionMgrv2.get(base),
+    userRoles: req?.session?.passport?.user?.roles,
   });
 
   res.json(await baseModel.updateByPk(req.params.rowId, req.body, null, req));
 }
 
-async function dataDelete(req: Request, res: Response) {
+async function dataDelete(req, res: Response) {
   const { model, view } = await getViewAndModelFromRequestByAliasOrId(req);
   const base = await Base.get(model.base_id);
   const baseModel = await Model.getBaseModelSQL({
     id: model.id,
     viewId: view?.id,
     dbDriver: NcConnectionMgrv2.get(base),
+    userRoles: req?.session?.passport?.user?.roles,
   });
 
   // todo: Should have error http status code
@@ -101,6 +104,7 @@ async function getDataList(model, view: View, req) {
     id: model.id,
     viewId: view?.id,
     dbDriver: NcConnectionMgrv2.get(base),
+    userRoles: req?.session?.passport?.user?.roles,
   });
 
   const requestObj = await getAst({ model, query: req.query, view });
@@ -141,6 +145,7 @@ async function getDataGroupBy(model, view: View, req) {
     id: model.id,
     viewId: view?.id,
     dbDriver: NcConnectionMgrv2.get(base),
+    userRoles: req?.session?.passport?.user?.roles,
   });
 
   const listArgs: any = { ...req.query };
@@ -160,6 +165,7 @@ async function getFindOne(model, view: View, req) {
     id: model.id,
     viewId: view?.id,
     dbDriver: NcConnectionMgrv2.get(base),
+    userRoles: req?.session?.passport?.user?.roles,
   });
 
   const args: any = { ...req.query };
@@ -182,7 +188,7 @@ async function getFindOne(model, view: View, req) {
     : {};
 }
 
-async function dataRead(req: Request, res: Response) {
+async function dataRead(req, res: Response) {
   const { model, view } = await getViewAndModelFromRequestByAliasOrId(req);
 
   const base = await Base.get(model.base_id);
@@ -191,6 +197,7 @@ async function dataRead(req: Request, res: Response) {
     id: model.id,
     viewId: view?.id,
     dbDriver: NcConnectionMgrv2.get(base),
+    userRoles: req?.session?.passport?.user?.roles,
   });
 
   const data = await baseModel.readByPk(req.params.rowId);
@@ -206,7 +213,7 @@ async function dataRead(req: Request, res: Response) {
   );
 }
 
-async function dataExist(req: Request, res: Response) {
+async function dataExist(req, res: Response) {
   const { model, view } = await getViewAndModelFromRequestByAliasOrId(req);
 
   const base = await Base.get(model.base_id);
@@ -215,6 +222,7 @@ async function dataExist(req: Request, res: Response) {
     id: model.id,
     viewId: view?.id,
     dbDriver: NcConnectionMgrv2.get(base),
+    userRoles: req?.session?.passport?.user?.roles,
   });
 
   res.json(await baseModel.exist(req.params.rowId));
@@ -233,6 +241,7 @@ async function getGroupedDataList(model, view: View, req) {
     id: model.id,
     viewId: view?.id,
     dbDriver: NcConnectionMgrv2.get(base),
+    userRoles: req?.session?.passport?.user?.roles,
   });
 
   const requestObj = await getAst({ model, query: req.query, view });

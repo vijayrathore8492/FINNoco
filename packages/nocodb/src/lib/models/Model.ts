@@ -4,7 +4,6 @@ import NocoCache from '../cache/NocoCache';
 import { XKnex } from '../db/sql-data-mapper';
 import { BaseModelSqlv2 } from '../db/sql-data-mapper/lib/sql/BaseModelSqlv2';
 import {
-  isVirtualCol,
   ModelTypes,
   TableReqType,
   TableType,
@@ -20,7 +19,6 @@ import {
 import View from './View';
 import { NcError } from '../meta/helpers/catchError';
 import Audit from './Audit';
-import { sanitize } from '../db/sql-data-mapper/lib/sql/helpers/sanitize';
 
 export default class Model implements TableType {
   copy_enabled: boolean;
@@ -321,6 +319,7 @@ export default class Model implements TableType {
       viewId?: string;
       dbDriver: XKnex;
       model?: Model;
+      userRoles?: Record<string, boolean>;
     },
     ncMeta = Noco.ncMeta
   ): Promise<BaseModelSqlv2> {
@@ -330,6 +329,7 @@ export default class Model implements TableType {
       dbDriver: args.dbDriver,
       viewId: args.viewId,
       model,
+      userRoles: args.userRoles,
     });
   }
 
@@ -398,21 +398,6 @@ export default class Model implements TableType {
     await NocoCache.del(`${CacheScope.MODEL}:${this.project_id}:${this.id}`);
     await NocoCache.del(`${CacheScope.MODEL}:${this.project_id}:${this.title}`);
     return true;
-  }
-
-  async mapAliasToColumn(data) {
-    const insertObj = {};
-    for (const col of await this.getColumns()) {
-      if (isVirtualCol(col)) continue;
-      const val =
-        data?.[col.column_name] !== undefined
-          ? data?.[col.column_name]
-          : data?.[col.title];
-      if (val !== undefined) {
-        insertObj[sanitize(col.column_name)] = val;
-      }
-    }
-    return insertObj;
   }
 
   static async updateAliasAndTableName(

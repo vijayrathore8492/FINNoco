@@ -22,7 +22,7 @@ export async function dataList(req: Request, res: Response, next) {
   res.json(await getDataList(model, view, req));
 }
 
-export async function mmList(req: Request, res: Response, next) {
+export async function mmList(req, res: Response, next) {
   const view = await View.get(req.params.viewId);
 
   const model = await Model.getByIdOrName({
@@ -37,6 +37,7 @@ export async function mmList(req: Request, res: Response, next) {
     id: model.id,
     viewId: view?.id,
     dbDriver: NcConnectionMgrv2.get(base),
+    userRoles: req?.session?.passport?.user?.roles,
   });
 
   const key = `${model.title}List`;
@@ -77,7 +78,7 @@ export async function mmList(req: Request, res: Response, next) {
   );
 }
 
-export async function mmExcludedList(req: Request, res: Response, next) {
+export async function mmExcludedList(req, res: Response, next) {
   const view = await View.get(req.params.viewId);
 
   const model = await Model.getByIdOrName({
@@ -92,6 +93,7 @@ export async function mmExcludedList(req: Request, res: Response, next) {
     id: model.id,
     viewId: view?.id,
     dbDriver: NcConnectionMgrv2.get(base),
+    userRoles: req?.session?.passport?.user?.roles,
   });
 
   const key = 'List';
@@ -135,7 +137,7 @@ export async function mmExcludedList(req: Request, res: Response, next) {
   );
 }
 
-export async function hmExcludedList(req: Request, res: Response, next) {
+export async function hmExcludedList(req, res: Response, next) {
   const view = await View.get(req.params.viewId);
 
   const model = await Model.getByIdOrName({
@@ -150,6 +152,7 @@ export async function hmExcludedList(req: Request, res: Response, next) {
     id: model.id,
     viewId: view?.id,
     dbDriver: NcConnectionMgrv2.get(base),
+    userRoles: req?.session?.passport?.user?.roles,
   });
 
   const key = 'List';
@@ -193,7 +196,7 @@ export async function hmExcludedList(req: Request, res: Response, next) {
   );
 }
 
-export async function btExcludedList(req: Request, res: Response, next) {
+export async function btExcludedList(req, res: Response, next) {
   const view = await View.get(req.params.viewId);
 
   const model = await Model.getByIdOrName({
@@ -208,6 +211,7 @@ export async function btExcludedList(req: Request, res: Response, next) {
     id: model.id,
     viewId: view?.id,
     dbDriver: NcConnectionMgrv2.get(base),
+    userRoles: req?.session?.passport?.user?.roles,
   });
 
   const key = 'List';
@@ -251,7 +255,7 @@ export async function btExcludedList(req: Request, res: Response, next) {
   );
 }
 
-export async function hmList(req: Request, res: Response, next) {
+export async function hmList(req, res: Response, next) {
   const view = await View.get(req.params.viewId);
 
   const model = await Model.getByIdOrName({
@@ -266,6 +270,7 @@ export async function hmList(req: Request, res: Response, next) {
     id: model.id,
     viewId: view?.id,
     dbDriver: NcConnectionMgrv2.get(base),
+    userRoles: req?.session?.passport?.user?.roles,
   });
 
   const key = `${model.title}List`;
@@ -304,7 +309,7 @@ export async function hmList(req: Request, res: Response, next) {
   );
 }
 
-async function dataRead(req: Request, res: Response, next) {
+async function dataRead(req, res: Response, next) {
   try {
     const model = await Model.getByIdOrName({
       id: req.params.viewId,
@@ -316,6 +321,7 @@ async function dataRead(req: Request, res: Response, next) {
     const baseModel = await Model.getBaseModelSQL({
       id: model.id,
       dbDriver: NcConnectionMgrv2.get(base),
+      userRoles: req?.session?.passport?.user?.roles,
     });
 
     res.json(
@@ -332,7 +338,7 @@ async function dataRead(req: Request, res: Response, next) {
   }
 }
 
-async function dataInsert(req: Request, res: Response, next) {
+async function dataInsert(req, res: Response, next) {
   try {
     const model = await Model.getByIdOrName({
       id: req.params.viewId,
@@ -344,6 +350,7 @@ async function dataInsert(req: Request, res: Response, next) {
     const baseModel = await Model.getBaseModelSQL({
       id: model.id,
       dbDriver: NcConnectionMgrv2.get(base),
+      userRoles: req?.session?.passport?.user?.roles,
     });
 
     res.json(await baseModel.insert(req.body, null, req));
@@ -379,7 +386,7 @@ async function dataInsert(req: Request, res: Response, next) {
 //
 //   res.json(await baseModel.updateByPk(req.params.rowId, req.body, null, req));
 // }
-async function dataUpdate(req: Request, res: Response, next) {
+async function dataUpdate(req, res: Response, next) {
   try {
     const model = await Model.getByIdOrName({
       id: req.params.viewId,
@@ -391,6 +398,7 @@ async function dataUpdate(req: Request, res: Response, next) {
     const baseModel = await Model.getBaseModelSQL({
       id: model.id,
       dbDriver: NcConnectionMgrv2.get(base),
+      userRoles: req?.session?.passport?.user?.roles,
     });
 
     res.json(await baseModel.updateByPk(req.params.rowId, req.body, null, req));
@@ -412,7 +420,7 @@ async function dataUpdate(req: Request, res: Response, next) {
 //   res.json(await baseModel.delByPk(req.params.rowId, null, req));
 // }
 
-async function dataDelete(req: Request, res: Response, next) {
+async function dataDelete(req, res: Response, next) {
   try {
     const model = await Model.getByIdOrName({
       id: req.params.viewId,
@@ -424,6 +432,7 @@ async function dataDelete(req: Request, res: Response, next) {
     const baseModel = await Model.getBaseModelSQL({
       id: model.id,
       dbDriver: NcConnectionMgrv2.get(base),
+      userRoles: req?.session?.passport?.user?.roles,
     });
 
     res.json(await baseModel.delByPk(req.params.rowId, null, req));
@@ -440,6 +449,7 @@ async function getDataList(model, view: View, req) {
     id: model.id,
     viewId: view?.id,
     dbDriver: NcConnectionMgrv2.get(base),
+    userRoles: req?.session?.passport?.user?.roles,
   });
 
   const requestObj = await getAst({ query: req.query, model, view });
@@ -488,6 +498,7 @@ async function relationDataDelete(req, res) {
     id: model.id,
     viewId: view?.id,
     dbDriver: NcConnectionMgrv2.get(base),
+    userRoles: req?.session?.passport?.user?.roles,
   });
 
   await baseModel.removeChild({
@@ -516,6 +527,7 @@ async function relationDataAdd(req, res) {
     id: model.id,
     viewId: view?.id,
     dbDriver: NcConnectionMgrv2.get(base),
+    userRoles: req?.session?.passport?.user?.roles,
   });
 
   await baseModel.addChild({

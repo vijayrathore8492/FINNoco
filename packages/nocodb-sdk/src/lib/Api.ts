@@ -250,6 +250,7 @@ export interface ColumnType {
   order?: number;
   system?: number | boolean;
   meta?: any;
+  visibility_rules?: ColumnVisibilityRuleType[];
   colOptions?:
     | LinkToAnotherRecordType
     | FormulaType
@@ -281,6 +282,12 @@ export interface LinkToAnotherRecordType {
   fk_index_name?: string;
   deleted?: string;
   order?: string;
+}
+
+export interface ColumnVisibilityRuleType {
+  access?: 'deny' | 'allow';
+  roles?: ('owner' | 'creator' | 'guest' | 'editor' | 'commenter' | 'viewer')[];
+  users?: string[];
 }
 
 export interface LookupType {

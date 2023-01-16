@@ -20,7 +20,7 @@ import getAst from '../../../db/sql-data-mapper/lib/sql/helpers/getAst';
 import { getColumnByIdOrName } from '../dataApis/helpers';
 import { NC_ATTACHMENT_FIELD_SIZE } from '../../../constants';
 
-export async function dataList(req: Request, res: Response) {
+export async function dataList(req, res: Response) {
   try {
     const view = await View.getByUUID(req.params.sharedViewUuid);
 
@@ -47,6 +47,7 @@ export async function dataList(req: Request, res: Response) {
       id: model.id,
       viewId: view?.id,
       dbDriver: NcConnectionMgrv2.get(base),
+      userRoles: req?.session?.passport?.user?.roles,
     });
 
     const listArgs: any = { ...req.query };
@@ -123,6 +124,7 @@ async function getGroupedDataList(model, view: View, req) {
     id: model.id,
     viewId: view?.id,
     dbDriver: NcConnectionMgrv2.get(base),
+    userRoles: req?.session?.passport?.user?.roles,
   });
 
   const requestObj = await getAst({ model, query: req.query, view });
@@ -175,7 +177,7 @@ async function getGroupedDataList(model, view: View, req) {
 }
 
 async function dataInsert(
-  req: Request & { files: any[] },
+  req: Request & { files: any[]; session: any },
   res: Response,
   next
 ) {
@@ -198,6 +200,7 @@ async function dataInsert(
     id: model.id,
     viewId: view?.id,
     dbDriver: NcConnectionMgrv2.get(base),
+    userRoles: req?.session?.passport?.user?.roles,
   });
 
   await view.getViewWithInfo();
@@ -292,6 +295,7 @@ async function relDataList(req, res) {
     id: model.id,
     viewId: view?.id,
     dbDriver: NcConnectionMgrv2.get(base),
+    userRoles: req?.session?.passport?.user?.roles,
   });
 
   const requestObj = await getAst({
@@ -318,7 +322,7 @@ async function relDataList(req, res) {
   res.json(new PagedResponseImpl(data, { ...req.query, count }));
 }
 
-export async function publicMmList(req: Request, res: Response) {
+export async function publicMmList(req, res: Response) {
   const view = await View.getByUUID(req.params.sharedViewUuid);
 
   if (!view) NcError.notFound('Not found');
@@ -342,6 +346,7 @@ export async function publicMmList(req: Request, res: Response) {
     id: view.fk_model_id,
     viewId: view?.id,
     dbDriver: NcConnectionMgrv2.get(base),
+    userRoles: req?.session?.passport?.user?.roles,
   });
 
   const key = `List`;
@@ -377,7 +382,7 @@ export async function publicMmList(req: Request, res: Response) {
   res.json(new PagedResponseImpl(data, { ...req.query, count }));
 }
 
-export async function publicHmList(req: Request, res: Response) {
+export async function publicHmList(req, res: Response) {
   const view = await View.getByUUID(req.params.sharedViewUuid);
 
   if (!view) NcError.notFound('Not found');
@@ -401,6 +406,7 @@ export async function publicHmList(req: Request, res: Response) {
     id: view.fk_model_id,
     viewId: view?.id,
     dbDriver: NcConnectionMgrv2.get(base),
+    userRoles: req?.session?.passport?.user?.roles,
   });
 
   const key = `List`;
