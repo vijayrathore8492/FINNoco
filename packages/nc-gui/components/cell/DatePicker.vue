@@ -74,6 +74,10 @@ watch(
 const placeholder = computed(() => (isDateInvalid ? 'Invalid date' : ''))
 
 useSelectedCellKeyupListener(active, (e: KeyboardEvent) => {
+  if (readOnly.value) {
+    return
+  }
+
   switch (e.key) {
     case 'Enter':
       e.stopPropagation()

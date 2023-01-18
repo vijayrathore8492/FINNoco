@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ActiveCellInj, ColumnInj, computed, inject, useSelectedCellKeyupListener } from '#imports'
+import { ActiveCellInj, ColumnInj, ReadonlyInj, computed, inject, ref, useSelectedCellKeyupListener } from '#imports'
 
 interface Props {
   modelValue?: number | null | undefined
@@ -28,7 +28,13 @@ const vModel = computed({
   set: (val) => emits('update:modelValue', val),
 })
 
+const readOnly = inject(ReadonlyInj, ref(false))
+
 useSelectedCellKeyupListener(inject(ActiveCellInj, ref(false)), (e: KeyboardEvent) => {
+  if (readOnly.value) {
+    return
+  }
+
   if (/^\d$/.test(e.key)) {
     e.stopPropagation()
     vModel.value = +e.key === +vModel.value ? 0 : +e.key

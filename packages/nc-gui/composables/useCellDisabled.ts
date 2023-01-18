@@ -1,0 +1,24 @@
+import type { ColumnType } from 'nocodb-sdk'
+import { isSystemColumn } from 'nocodb-sdk'
+import type { Ref } from 'vue'
+import { IsFormInj, IsLockedInj, IsPublicInj } from '#imports'
+import { inject, ref } from '#build/imports'
+
+export const useViewDisabled = () => {
+  const isPublic = inject(IsPublicInj, ref(false))
+  const isLocked = inject(IsLockedInj, ref(false))
+  const isForm = inject(IsFormInj, ref(false))
+  const readOnly = inject(ReadonlyInj, ref(false))
+
+  return computed(() => isLocked.value || (isPublic.value && readOnly.value && !isForm.value))
+}
+
+export const checkIsCellDisabled = (column: ColumnType, isViewDisabled: boolean) => {
+  return isSystemColumn(column) || (isViewDisabled && !isAttachment(column))
+}
+
+export const useCellDisabled = (column: Ref<ColumnType>) => {
+  const isDisabledView = useViewDisabled()
+
+  return computed(() => checkIsCellDisabled(column.value, isDisabledView.value))
+}

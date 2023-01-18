@@ -71,6 +71,10 @@ watch(
 )
 
 useSelectedCellKeyupListener(active, (e: KeyboardEvent) => {
+  if (readOnly.value) {
+    return
+  }
+
   switch (e.key) {
     case 'Enter':
       e.stopPropagation()

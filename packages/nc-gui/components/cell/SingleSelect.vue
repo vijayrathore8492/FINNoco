@@ -95,6 +95,10 @@ watch(isOpen, (n, _o) => {
 })
 
 useSelectedCellKeyupListener(active, (e) => {
+  if (readOnly.value) {
+    return
+  }
+
   switch (e.key) {
     case 'Escape':
       isOpen.value = false
