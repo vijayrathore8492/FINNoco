@@ -1,6 +1,6 @@
 <script lang="ts" setup>
 import type { ColumnReqType, ColumnType, TableType, ViewType } from 'nocodb-sdk'
-import { UITypes, isVirtualCol } from 'nocodb-sdk'
+import { UITypes, isSystemColumn, isVirtualCol } from 'nocodb-sdk'
 import {
   ActiveViewInj,
   CellUrlDisableOverlayInj,
@@ -46,6 +46,7 @@ import {
   watch,
 } from '#imports'
 import type { Row } from '~/lib'
+import { checkIsCellDisabled } from '~/composables/useCellDisabled'
 
 const { t } = useI18n()
 
@@ -428,8 +429,12 @@ async function clearCell(ctx: { row: number; col: number } | null, skipUpdate = 
   }
 }
 
+const isViewDisabled = useViewDisabled()
+
 function makeEditable(row: Row, col: ColumnType) {
-  if (!hasEditPermission || editEnabled || isView) {
+  const isCellLocked = checkIsCellDisabled(col, isViewDisabled.value)
+
+  if (!hasEditPermission || editEnabled || isView || isCellLocked) {
     return
   }
 
@@ -448,6 +453,12 @@ function makeEditable(row: Row, col: ColumnType) {
   if (col.pk && !row.rowMeta.new) {
     // Editing primary key not supported
     message.info(t('msg.info.editingPKnotSupported'))
+    return
+  }
+
+  if (isSystemColumn(col)) {
+    // System field is not editable
+    message.info(t('System field is not editable'))
     return
   }
 

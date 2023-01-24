@@ -1,13 +1,10 @@
 <script setup lang="ts">
 import type { ColumnType } from 'nocodb-sdk'
-import { isSystemColumn } from 'nocodb-sdk'
 import {
   ActiveCellInj,
   ColumnInj,
   EditModeInj,
   IsFormInj,
-  IsLockedInj,
-  IsPublicInj,
   ReadonlyInj,
   computed,
   inject,
@@ -45,6 +42,7 @@ import {
   useVModel,
 } from '#imports'
 import { NavigateDir } from '~/lib'
+import { useCellDisabled } from '~/composables/useCellDisabled'
 
 interface Props {
   column: ColumnType
@@ -72,13 +70,14 @@ provide(EditModeInj, useVModel(props, 'editEnabled', emit))
 
 provide(ActiveCellInj, active)
 
-provide(ReadonlyInj, readOnly)
+const isCellDisabled = useCellDisabled(column)
+
+provide(
+  ReadonlyInj,
+  computed(() => readOnly.value || isCellDisabled.value),
+)
 
 const isForm = inject(IsFormInj, ref(false))
-
-const isPublic = inject(IsPublicInj, ref(false))
-
-const isLocked = inject(IsLockedInj, ref(false))
 
 const { currentRow } = useSmartsheetRowStoreOrThrow()
 
@@ -157,12 +156,7 @@ const syncAndNavigate = (dir: NavigateDir, e: KeyboardEvent) => {
       <LazyCellText v-else-if="isString(column, abstractType)" v-model="vModel" />
       <LazyCellJson v-else-if="isJSON(column)" v-model="vModel" />
       <LazyCellText v-else v-model="vModel" />
-      <div
-        v-if="(isLocked || (isPublic && readOnly && !isForm) || isSystemColumn(column)) && !isAttachment(column)"
-        class="nc-locked-overlay"
-        @click.stop.prevent
-        @dblclick.stop.prevent
-      />
+      <div v-if="isCellDisabled" class="nc-locked-overlay" @click.stop.prevent @dblclick.stop.prevent />
     </template>
   </div>
 </template>

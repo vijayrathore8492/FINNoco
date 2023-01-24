@@ -105,6 +105,10 @@ watch(editEnabled, () => {
 })
 
 useSelectedCellKeyupListener(active, (e) => {
+  if (readonly.value) {
+    return
+  }
+
   switch (e.key) {
     case 'Enter':
       e.stopPropagation()
