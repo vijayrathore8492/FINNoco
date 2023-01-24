@@ -14,7 +14,7 @@ export const useViewDisabled = () => {
 }
 
 export const checkIsCellDisabled = (column: ColumnType, isViewDisabled: boolean) => {
-  return isSystemColumn(column) || (isViewDisabled && !isAttachment(column))
+  return isSystemColumn(column) || isViewDisabled
 }
 
 export const useCellDisabled = (column: Ref<ColumnType>) => {

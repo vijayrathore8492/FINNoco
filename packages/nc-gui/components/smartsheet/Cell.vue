@@ -156,7 +156,7 @@ const syncAndNavigate = (dir: NavigateDir, e: KeyboardEvent) => {
       <LazyCellText v-else-if="isString(column, abstractType)" v-model="vModel" />
       <LazyCellJson v-else-if="isJSON(column)" v-model="vModel" />
       <LazyCellText v-else v-model="vModel" />
-      <div v-if="isCellDisabled" class="nc-locked-overlay" @click.stop.prevent @dblclick.stop.prevent />
+      <div v-if="isCellDisabled && !isAttachment(column)" class="nc-locked-overlay" @click.stop.prevent @dblclick.stop.prevent />
     </template>
   </div>
 </template>
