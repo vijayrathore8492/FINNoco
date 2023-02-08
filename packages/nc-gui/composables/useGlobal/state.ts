@@ -85,6 +85,8 @@ export function useGlobalState(storageKey = 'nocodb-gui-v2'): State {
   })
 
   const appInfo = ref<AppInfo>({
+    canCreateProjectWithoutExternalDB: false,
+    noSignUp: false,
     ncSiteUrl: BASE_FALLBACK_URL,
     authType: 'jwt',
     connectToExternalDB: false,
@@ -99,6 +101,8 @@ export function useGlobalState(storageKey = 'nocodb-gui-v2'): State {
     type: 'nocodb',
     version: '0.0.0',
     useFinnTheme: false,
+    sentryDsnFrontend: '',
+    platform: '',
   })
 
   /** reactive token payload */

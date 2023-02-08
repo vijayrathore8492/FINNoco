@@ -284,7 +284,10 @@ export default class Noco {
 
   private initSentry() {
     if (process.env.NC_SENTRY_DSN) {
-      Sentry.init({ dsn: process.env.NC_SENTRY_DSN });
+      Sentry.init({
+        dsn: process.env.NC_SENTRY_DSN,
+        environment: process.env.NC_ENV,
+      });
 
       // The request handler must be the first middleware on the app
       this.router.use(Sentry.Handlers.requestHandler());

@@ -13,6 +13,11 @@ export default defineNuxtConfig({
 
   ssr: false,
 
+  sourcemap: {
+    client: true,
+    server: false,
+  },
+
   app: {
     pageTransition: process.env.NUXT_PAGE_TRANSITION_DISABLE
       ? false
