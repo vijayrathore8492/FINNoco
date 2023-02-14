@@ -3,6 +3,7 @@ import { isSystemColumn } from 'nocodb-sdk'
 import type { Ref } from 'vue'
 import { IsFormInj, IsLockedInj, IsPublicInj } from '#imports'
 import { inject, ref } from '#build/imports'
+import { useHasAccessToColumn } from '~/composables/useHasAccessToColumn'
 
 export const useViewDisabled = () => {
   const isPublic = inject(IsPublicInj, ref(false))
@@ -13,12 +14,13 @@ export const useViewDisabled = () => {
   return computed(() => isLocked.value || (isPublic.value && readOnly.value && !isForm.value))
 }
 
-export const checkIsCellDisabled = (column: ColumnType, isViewDisabled: boolean) => {
-  return isSystemColumn(column) || isViewDisabled
+export const checkIsCellDisabled = (column: ColumnType, isViewDisabled: boolean, hasAccessToColumn?: boolean) => {
+  return isSystemColumn(column) || isViewDisabled || !hasAccessToColumn
 }
 
 export const useCellDisabled = (column: Ref<ColumnType>) => {
   const isDisabledView = useViewDisabled()
+  const { hasAccessToColumn } = useHasAccessToColumn(column)
 
-  return computed(() => checkIsCellDisabled(column.value, isDisabledView.value))
+  return computed(() => checkIsCellDisabled(column.value, isDisabledView.value, hasAccessToColumn))
 }

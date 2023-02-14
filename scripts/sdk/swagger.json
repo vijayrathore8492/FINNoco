@@ -7900,10 +7900,7 @@
           },
           "meta": {},
           "visibility_rules": {
-            "type": "array",
-            "items": {
-              "$ref": "#/components/schemas/ColumnVisibilityRule"
-            }
+            "$ref": "#/components/schemas/ColumnVisibilityRules"
           },
           "colOptions": {
             "oneOf": [
@@ -8037,32 +8034,31 @@
           }
         }
       },
-      "ColumnVisibilityRule": {
-        "title": "ColumnVisibilityRule",
+      "AccessControl": {
+        "title": "AccessControl",
+        "type": "string",
+        "enum": [
+          "deny",
+          "allow"
+        ]
+      },
+      "ColumnVisibilityRules": {
+        "title": "ColumnVisibilityRules",
         "type": "object",
         "properties": {
-          "access": {
-            "type": "string",
-            "enum": [
-              "deny",
-              "allow",
-            ]
+          "creator": {
+            "$ref": "#/components/schemas/AccessControl"
           },
-          "roles": {
-            "type": "array",
-            "items": {
-              "type": "string",
-              "enum": [
-                "owner",
-                "creator",
-                "guest",
-                "editor",
-                "commenter",
-                "viewer"
-              ]
-            }
+          "editor": {
+            "$ref": "#/components/schemas/AccessControl"
           },
-          "users": {
+          "commenter": {
+            "$ref": "#/components/schemas/AccessControl"
+          },
+          "viewer": {
+            "$ref": "#/components/schemas/AccessControl"
+          },
+          "allowedUsers": {
             "type": "array",
             "items": {
               "type": "string"

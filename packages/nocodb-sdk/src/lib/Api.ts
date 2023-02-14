@@ -250,7 +250,7 @@ export interface ColumnType {
   order?: number;
   system?: number | boolean;
   meta?: any;
-  visibility_rules?: ColumnVisibilityRuleType[];
+  visibility_rules?: ColumnVisibilityRulesType;
   colOptions?:
     | LinkToAnotherRecordType
     | FormulaType
@@ -284,10 +284,17 @@ export interface LinkToAnotherRecordType {
   order?: string;
 }
 
-export interface ColumnVisibilityRuleType {
-  access?: 'deny' | 'allow';
-  roles?: ('owner' | 'creator' | 'guest' | 'editor' | 'commenter' | 'viewer')[];
-  users?: string[];
+export enum AccessControlType {
+  Deny = 'deny',
+  Allow = 'allow',
+}
+
+export interface ColumnVisibilityRulesType {
+  creator?: AccessControlType;
+  editor?: AccessControlType;
+  commenter?: AccessControlType;
+  viewer?: AccessControlType;
+  allowedUsers?: string[];
 }
 
 export interface LookupType {

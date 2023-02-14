@@ -3,7 +3,7 @@ import { MetaTable } from '../../utils/globals';
 
 export async function up(knex: Knex): Promise<void> {
   await knex.schema.alterTable(MetaTable.COLUMNS, (table) => {
-    table.text('visibility_rules').defaultTo('[]');
+    table.text('visibility_rules').defaultTo('{}');
   });
 }
 

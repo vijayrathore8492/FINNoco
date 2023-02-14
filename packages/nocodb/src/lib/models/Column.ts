@@ -6,12 +6,12 @@ import SelectOption from './SelectOption';
 import Model from './Model';
 import NocoCache from '../cache/NocoCache';
 import {
-  ColumnReqType,
-  isSystemColumn,
   AllowedColumnTypesForQrCode,
+  ColumnReqType,
   ColumnType,
+  ColumnVisibilityRulesType,
+  isSystemColumn,
   UITypes,
-  ColumnVisibilityRuleType,
 } from 'nocodb-sdk';
 import {
   CacheDelDirection,
@@ -64,8 +64,8 @@ export default class Column<T = any> implements ColumnType {
 
   public validate: any;
   public meta: any;
-  public visibility_rules?: ColumnVisibilityRuleType[];
   public public: boolean;
+  public visibility_rules: ColumnVisibilityRulesType;
 
   constructor(data: Partial<ColumnType | Column>) {
     Object.assign(this, data);
@@ -75,6 +75,29 @@ export default class Column<T = any> implements ColumnType {
     return Model.getByIdOrName({
       id: this.fk_model_id,
     });
+  }
+
+  public static parseColumnData(column) {
+    if (column.meta && typeof column.meta === 'string') {
+      try {
+        column.meta = JSON.parse(column.meta);
+      } catch {
+        column.meta = {};
+      }
+    }
+
+    if (
+      column.visibility_rules &&
+      typeof column.visibility_rules === 'string'
+    ) {
+      try {
+        column.visibility_rules = JSON.parse(column.visibility_rules);
+      } catch {
+        column.visibility_rules = {};
+      }
+    }
+
+    return column;
   }
 
   public static async insert<T>(
@@ -121,7 +144,7 @@ export default class Column<T = any> implements ColumnType {
         column.meta && typeof column.meta === 'object'
           ? JSON.stringify(column.meta)
           : column.meta,
-      visibility_rules: JSON.stringify(column.visibility_rules ?? []),
+      visibility_rules: JSON.stringify(column.visibility_rules ?? {}),
       public: column.public === true,
     };
 
@@ -478,7 +501,7 @@ export default class Column<T = any> implements ColumnType {
             column.meta = {};
           }
         }
-        column.visibility_rules = JSON.parse(column.visibility_rules ?? '[]');
+        column.visibility_rules = JSON.parse(column.visibility_rules ?? '{}');
       });
 
       await NocoCache.setList(CacheScope.COLUMN, [fk_model_id], columnsList);
@@ -559,13 +582,10 @@ export default class Column<T = any> implements ColumnType {
         colId
       );
       if (colData) {
-        try {
-          colData.meta = JSON.parse(colData.meta);
-        } catch {
-          colData.meta = {};
-        }
-        colData.visibility_rules = JSON.parse(colData.visibility_rules ?? '[]');
-        await NocoCache.set(`${CacheScope.COLUMN}:${colId}`, colData);
+        await NocoCache.set(
+          `${CacheScope.COLUMN}:${colId}`,
+          this.parseColumnData(colData)
+        );
       }
     }
     if (colData) {
@@ -954,7 +974,7 @@ export default class Column<T = any> implements ColumnType {
       validate: null,
       meta: column.meta,
       visibility_rules: JSON.stringify(
-        column.visibility_rules ?? oldCol.visibility_rules ?? []
+        column.visibility_rules ?? oldCol.visibility_rules ?? {}
       ),
     };
 
@@ -985,7 +1005,7 @@ export default class Column<T = any> implements ColumnType {
     if (o) {
       o = { ...o, ...updateObj };
       // set cache
-      await NocoCache.set(key, o);
+      await NocoCache.set(key, this.parseColumnData(o));
     }
     // set meta
     await ncMeta.metaUpdate(
@@ -1016,7 +1036,7 @@ export default class Column<T = any> implements ColumnType {
       // update data
       o.title = title;
       // set cache
-      await NocoCache.set(key, o);
+      await NocoCache.set(key, this.parseColumnData(o));
     }
     // set meta
     await ncMeta.metaUpdate(
@@ -1096,7 +1116,7 @@ export default class Column<T = any> implements ColumnType {
       // update data
       o.system = system;
       // set cache
-      await NocoCache.set(key, o);
+      await NocoCache.set(key, this.parseColumnData(o));
     }
     // update system field in meta db
     await ncMeta.metaUpdate(

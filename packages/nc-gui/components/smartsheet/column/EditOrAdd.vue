@@ -191,6 +191,7 @@ useEventListener('keydown', (e: KeyboardEvent) => {
       <div
         v-if="!isVirtualCol(formState.uidt)"
         class="text-xs cursor-pointer text-grey nc-more-options mb-1 mt-4 flex items-center gap-1 justify-end"
+        data-testid="edit-or-add-show-more"
         @click="advancedOptions = !advancedOptions"
       >
         {{ advancedOptions ? $t('general.hideAll') : $t('general.showMore') }}

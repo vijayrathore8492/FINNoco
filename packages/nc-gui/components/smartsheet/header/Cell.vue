@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import type { ColumnReqType, ColumnType } from 'nocodb-sdk'
-import { ColumnInj, IsFormInj, IsKanbanInj, inject, provide, ref, toRef, useUIPermission } from '#imports'
+import { ColumnInj, IsFormInj, IsKanbanInj, inject, provide, ref, toRef, useHasAccessToColumn, useUIPermission } from '#imports'
 
 const props = defineProps<{ column: ColumnType & { meta: any }; required?: boolean | number; hideMenu?: boolean }>()
 
@@ -13,6 +13,8 @@ const isKanban = inject(IsKanbanInj, ref(false))
 const column = toRef(props, 'column')
 
 const { isUIAllowed } = useUIPermission()
+
+const { hasAccessToColumn } = useHasAccessToColumn(column)
 
 provide(ColumnInj, column)
 
@@ -52,7 +54,7 @@ const closeAddColumnDropdown = () => {
       <div class="flex-1" />
 
       <LazySmartsheetHeaderMenu
-        v-if="!isForm && isUIAllowed('edit-column')"
+        v-if="!isForm && isUIAllowed('edit-column') && hasAccessToColumn"
         @add-column="addField"
         @edit="editColumnDropdown = true"
       />

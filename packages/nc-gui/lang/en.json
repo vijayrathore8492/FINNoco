@@ -504,6 +504,7 @@
       }
     },
     "info": {
+      "noAccessToColumn": "You don't have permissions to read this column's data",
       "confirmOptionRemoval": "Do you want to delete this option?\nOnce you click the save button, you cannot undo the operation",
       "pasteNotSupported": "Paste operation is not supported on the active cell",
       "roles": {
