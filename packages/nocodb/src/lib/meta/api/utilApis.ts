@@ -58,6 +58,8 @@ export async function appInfo(req: Request, res: Response) {
     teleEnabled: !process.env.NC_DISABLE_TELE,
     noSignUp: process.env.NC_NO_SIGN_UP === '1',
     ncSiteUrl: (req as any).ncSiteUrl,
+    platform: process.env.NC_ENV,
+    sentryDsnFrontend: process.env.NC_SENTRY_DSN_FRONTEND,
   };
 
   res.json(result);

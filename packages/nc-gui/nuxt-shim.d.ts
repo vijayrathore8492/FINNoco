@@ -1,4 +1,5 @@
 import type { Api as BaseAPI } from 'nocodb-sdk'
+import type * as Sentry from '@sentry/vue'
 import type { UseGlobalReturn } from './composables/useGlobal/types'
 import type { NocoI18n } from './lib'
 import type { TabType } from './composables'
@@ -13,6 +14,9 @@ declare module '#app/nuxt' {
     /** {@link import('./plugins/tele') Telemetry} Emit telemetry event */
     $e: (event: string, data?: any) => void
     $state: UseGlobalReturn
+    $sentryCaptureException: typeof Sentry.captureException
+    $sentrySetUser: typeof Sentry.setUser
+    $sentryAddBreadcrumb: typeof Sentry.addBreadcrumb
   }
 }
 

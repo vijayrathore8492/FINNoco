@@ -28,6 +28,8 @@ export interface AppInfo {
   type: string
   version: string
   useFinnTheme: boolean
+  sentryDsnFrontend: string
+  platform: string
 }
 
 export interface StoredState {

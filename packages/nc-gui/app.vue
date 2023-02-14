@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { applyNonSelectable, computed, useRoute, useTheme } from '#imports'
+import { applyNonSelectable, computed, message, useNuxtApp, useRoute, useTheme } from '#imports'
 
 const route = useRoute()
 
@@ -8,6 +8,15 @@ const disableBaseLayout = computed(() => route.path.startsWith('/nc/view') || ro
 useTheme()
 
 applyNonSelectable()
+
+const { $sentryCaptureException } = useNuxtApp()
+
+message.error = new Proxy(message.error, {
+  apply: (target, thisArg, argArray) => {
+    $sentryCaptureException(argArray)
+    return Reflect.apply(target, thisArg, argArray)
+  },
+})
 
 // TODO: Remove when https://github.com/vuejs/core/issues/5513 fixed
 const key = ref(0)

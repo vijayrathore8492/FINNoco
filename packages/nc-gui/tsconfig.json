@@ -16,7 +16,8 @@
       "unplugin-icons/types/vue",
       "nuxt-windicss",
       "vite/client",
-      "@nuxt/image-edge"
+      "@nuxt/image-edge",
+      "@nuxtjs/sentry"
     ]
   },
   "exclude": [

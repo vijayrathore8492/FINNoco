@@ -1,3 +1,5 @@
+import * as Sentry from '@sentry/node';
+
 export default function (
   requestHandler: (req: any, res: any, next?: any) => any
 ) {
@@ -7,6 +9,8 @@ export default function (
     } catch (e) {
       // todo: error log
       console.log(requestHandler.name ? `${requestHandler.name} ::` : '', e);
+
+      Sentry.captureException(e);
 
       if (e instanceof BadRequest) {
         return res.status(400).json({ msg: e.message });

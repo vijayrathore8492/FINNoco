@@ -37,7 +37,7 @@ export * from './types'
  * ```
  */
 export const useGlobal = createGlobalState((): UseGlobalReturn => {
-  const { provide } = useNuxtApp()
+  const { provide, $sentrySetUser } = useNuxtApp()
 
   const state = useGlobalState()
 
@@ -71,6 +71,9 @@ export const useGlobal = createGlobalState((): UseGlobalReturn => {
           firstname: nextPayload.firstname,
           lastname: nextPayload.lastname,
           roles: nextPayload.roles,
+        }
+        if ($sentrySetUser) {
+          $sentrySetUser({ id: nextPayload.id, email: nextPayload.email })
         }
       }
     },
