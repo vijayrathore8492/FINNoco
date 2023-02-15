@@ -47,6 +47,7 @@ import {
 } from '#imports'
 import type { Row } from '~/lib'
 import { checkIsCellDisabled } from '~/composables/useCellDisabled'
+import { checkHasAccessToColumn } from '~/composables/useHasAccessToColumn'
 
 const { t } = useI18n()
 
@@ -432,7 +433,9 @@ async function clearCell(ctx: { row: number; col: number } | null, skipUpdate = 
 const isViewDisabled = useViewDisabled()
 
 function makeEditable(row: Row, col: ColumnType) {
-  const isCellLocked = checkIsCellDisabled(col, isViewDisabled.value)
+  const hasAccessToColumn = checkHasAccessToColumn(col, hasRole)
+
+  const isCellLocked = checkIsCellDisabled(col, isViewDisabled.value, hasAccessToColumn)
 
   if (!hasEditPermission || editEnabled || isView || isCellLocked) {
     return

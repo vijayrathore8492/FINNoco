@@ -20,6 +20,7 @@ import formulaQueryBuilderv2 from './formulav2/formulaQueryBuilderv2';
 import { Knex } from 'knex';
 import View from '../../../../models/View';
 import {
+  AccessControlType,
   AuditOperationSubTypes,
   AuditOperationTypes,
   isVirtualCol,
@@ -1521,34 +1522,32 @@ class BaseModelSqlv2 {
       if (
         !userRoles ||
         userRoles['super'] ||
-        !column?.visibility_rules?.length
+        !Object.keys(column?.visibility_rules).length
       ) {
         return true;
       }
 
-      const rolesWithNoAccess = column.visibility_rules.find(
-        (rule) => rule.access === 'deny'
-      )?.roles;
+      const rolesWithNoAccess = Object.keys(column.visibility_rules).filter(
+        (role) => column.visibility_rules[role] === AccessControlType.Deny
+      );
 
-      if (
-        rolesWithNoAccess &&
-        rolesWithNoAccess.some((role) => userRoles[role])
-      ) {
+      if (rolesWithNoAccess?.some((role) => userRoles[role])) {
         return false;
       }
 
-      const rolesWithReadOrWriteAccess = column.visibility_rules.find(
-        (rule) => rule.access === 'allow'
-      )?.roles;
-
       if (
-        rolesWithReadOrWriteAccess &&
-        rolesWithReadOrWriteAccess.some((role) => userRoles[role])
+        Object.keys(userRoles).every(
+          (role) => column.visibility_rules[role] === undefined
+        )
       ) {
         return true;
       }
 
-      return !rolesWithNoAccess && !rolesWithReadOrWriteAccess;
+      const rolesWithAccess = Object.keys(column.visibility_rules).filter(
+        (role) => column.visibility_rules[role] === AccessControlType.Allow
+      );
+
+      return rolesWithAccess?.some((role) => userRoles[role]);
     });
   }
 

@@ -37,6 +37,8 @@ import {
   ref,
   toRef,
   useDebounceFn,
+  useHasAccessToColumn,
+  useI18n,
   useProject,
   useSmartsheetRowStoreOrThrow,
   useVModel,
@@ -70,7 +72,11 @@ provide(EditModeInj, useVModel(props, 'editEnabled', emit))
 
 provide(ActiveCellInj, active)
 
+const { t } = useI18n()
+
 const isCellDisabled = useCellDisabled(column)
+
+const { hasAccessToColumn } = useHasAccessToColumn(column)
 
 provide(
   ReadonlyInj,
@@ -134,7 +140,17 @@ const syncAndNavigate = (dir: NavigateDir, e: KeyboardEvent) => {
     @keydown.shift.enter.exact="syncAndNavigate(NavigateDir.PREV, $event)"
   >
     <template v-if="column">
-      <LazyCellTextArea v-if="isTextArea(column)" v-model="vModel" />
+      <div v-if="!hasAccessToColumn" class="z-3 relative">
+        <a-tooltip>
+          <template #title>
+            <span data-testid="no-access-to-column-message">
+              {{ t('msg.info.noAccessToColumn') }}
+            </span>
+          </template>
+          <a-skeleton :title="false" :paragraph="{ rows: 1, prefixCls: 'ant-skeleton-paragraph cell-skeleton' }"></a-skeleton>
+        </a-tooltip>
+      </div>
+      <LazyCellTextArea v-else-if="isTextArea(column)" v-model="vModel" />
       <LazyCellCheckbox v-else-if="isBoolean(column, abstractType)" v-model="vModel" />
       <LazyCellAttachment v-else-if="isAttachment(column)" v-model="vModel" :row-index="props.rowIndex" />
       <LazyCellSingleSelect v-else-if="isSingleSelect(column)" v-model="vModel" :row-index="props.rowIndex" />
@@ -160,3 +176,10 @@ const syncAndNavigate = (dir: NavigateDir, e: KeyboardEvent) => {
     </template>
   </div>
 </template>
+
+<style lang="scss">
+.ant-skeleton-paragraph.cell-skeleton {
+  padding: 0;
+  margin: 0;
+}
+</style>

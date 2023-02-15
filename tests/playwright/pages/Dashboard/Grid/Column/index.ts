@@ -3,6 +3,15 @@ import { GridPage } from '..';
 import BasePage from '../../../Base';
 import { SelectOptionColumnPageObject } from './SelectOptionColumn';
 
+export type AccessControlType = 'allow' | 'deny';
+
+export interface ColumnVisibilityRules {
+  creator?: AccessControlType;
+  viewer?: AccessControlType;
+  commenter?: AccessControlType;
+  editor?: AccessControlType;
+}
+
 export class ColumnPageObject extends BasePage {
   readonly grid: GridPage;
   readonly selectOption: SelectOptionColumnPageObject;
@@ -37,6 +46,7 @@ export class ColumnPageObject extends BasePage {
     format = '',
     insertAfterColumnTitle,
     insertBeforeColumnTitle,
+    visibilityRules,
   }: {
     title: string;
     type?: string;
@@ -49,6 +59,7 @@ export class ColumnPageObject extends BasePage {
     format?: string;
     insertBeforeColumnTitle?: string;
     insertAfterColumnTitle?: string;
+    visibilityRules?: ColumnVisibilityRules;
   }) {
     if (insertBeforeColumnTitle) {
       await this.grid.get().locator(`th[data-title="${insertBeforeColumnTitle}"] .nc-ui-dt-dropdown`).click();
@@ -65,6 +76,12 @@ export class ColumnPageObject extends BasePage {
     await this.rootPage.waitForTimeout(500);
     await this.selectType({ type });
     await this.rootPage.waitForTimeout(500);
+
+    if (visibilityRules) {
+      await this.get().getByTestId('edit-or-add-show-more').click();
+
+      await this.setVisibilityRules(visibilityRules);
+    }
 
     switch (type) {
       case 'SingleSelect':
@@ -191,6 +208,20 @@ export class ColumnPageObject extends BasePage {
 
     // Select column type
     await this.rootPage.locator('.rc-virtual-list-holder-inner > div').locator(`text="${type}"`).click();
+  }
+
+  async setVisibilityRules(visibilityRules: ColumnVisibilityRules) {
+    await Promise.all(
+      Object.keys(visibilityRules).map(async rule => {
+        const checkbox = this.get().getByTestId(`visibility-rules-checkbox-${rule}`);
+        const isChecked = await checkbox.isChecked();
+        if (isChecked && visibilityRules[rule] === 'deny') {
+          await checkbox.uncheck();
+        } else if (!isChecked && visibilityRules[rule] === 'allow') {
+          await checkbox.check();
+        }
+      })
+    );
   }
 
   async changeReferencedColumnForQrCode({ titleOfReferencedColumn }: { titleOfReferencedColumn: string }) {

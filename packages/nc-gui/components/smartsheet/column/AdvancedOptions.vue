@@ -1,7 +1,7 @@
 <script setup lang="ts">
-import { UITypes } from 'nocodb-sdk'
+import { AccessControlType, UITypes } from 'nocodb-sdk'
+import type { ProjectRole } from '#imports'
 import { computed, useColumnCreateStoreOrThrow, useProject, useVModel } from '#imports'
-
 const props = defineProps<{
   value: any
 }>()
@@ -38,6 +38,11 @@ vModel.value.pk = !!vModel.value.pk
 vModel.value.un = !!vModel.value.un
 vModel.value.ai = !!vModel.value.ai
 vModel.value.au = !!vModel.value.au
+
+const changeVisibilityRules = (allowed: boolean, role: ProjectRole) => {
+  vModel.value.visibility_rules = vModel.value.visibility_rules ?? {}
+  vModel.value.visibility_rules[role] = allowed ? AccessControlType.Allow : AccessControlType.Deny
+}
 </script>
 
 <template>
@@ -103,5 +108,18 @@ vModel.value.au = !!vModel.value.au
       <a-textarea v-model:value="vModel.cdf" auto-size @input="onAlter(2, true)" />
       <span class="text-gray-400 text-xs">{{ sampleValue }}</span>
     </a-form-item>
+
+    <div class="flex justify-between w-full gap-1">
+      <a-form-item v-for="role in projectRoles" :key="role" :label="role" class="capitalize">
+        <a-checkbox
+          :checked="
+            !!(vModel.visibility_rules?.[role] === undefined || vModel.visibility_rules?.[role] === AccessControlType.Allow)
+          "
+          :data-testid="`visibility-rules-checkbox-${role}`"
+          size="small"
+          @update:checked="(allowed) => changeVisibilityRules(allowed, role)"
+        />
+      </a-form-item>
+    </div>
   </div>
 </template>
