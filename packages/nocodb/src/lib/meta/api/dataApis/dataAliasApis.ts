@@ -9,11 +9,16 @@ import ncMetaAclMw from '../../helpers/ncMetaAclMw';
 import { getViewAndModelFromRequestByAliasOrId } from './helpers';
 import apiMetrics from '../../helpers/apiMetrics';
 import getAst from '../../../db/sql-data-mapper/lib/sql/helpers/getAst';
+import { parseHrtimeToSeconds } from '../helpers';
 
 // todo: Handle the error case where view doesnt belong to model
 async function dataList(req: Request, res: Response) {
+  const startTime = process.hrtime();
   const { model, view } = await getViewAndModelFromRequestByAliasOrId(req);
-  res.json(await getDataList(model, view, req));
+  const responseData = await getDataList(model, view, req);
+  const elapsedSeconds = parseHrtimeToSeconds(process.hrtime(startTime));
+  res.setHeader('xc-db-response', elapsedSeconds);
+  res.json(responseData);
 }
 
 async function dataFindOne(req: Request, res: Response) {
@@ -128,8 +133,10 @@ async function getDataList(model, view: View, req) {
     );
     count = await baseModel.count(listArgs);
   } catch (e) {
-    // show empty result instead of throwing error here
-    // e.g. search some text in a numeric field
+    console.log(e);
+    NcError.internalServerError(
+      'Internal Server Error, check server log for more details'
+    );
   }
 
   return new PagedResponseImpl(data, {
@@ -230,8 +237,12 @@ async function dataExist(req, res: Response) {
 
 // todo: Handle the error case where view doesnt belong to model
 async function groupedDataList(req: Request, res: Response) {
+  const startTime = process.hrtime();
   const { model, view } = await getViewAndModelFromRequestByAliasOrId(req);
-  res.json(await getGroupedDataList(model, view, req));
+  const groupedData = await getGroupedDataList(model, view, req);
+  const elapsedSeconds = parseHrtimeToSeconds(process.hrtime(startTime));
+  res.setHeader('xc-db-response', elapsedSeconds);
+  res.json(groupedData);
 }
 
 async function getGroupedDataList(model, view: View, req) {
@@ -288,8 +299,9 @@ async function getGroupedDataList(model, view: View, req) {
     });
   } catch (e) {
     console.log(e);
-    // show empty result instead of throwing error here
-    // e.g. search some text in a numeric field
+    NcError.internalServerError(
+      'Internal Server Error, check server log for more details'
+    );
   }
   return data;
 }

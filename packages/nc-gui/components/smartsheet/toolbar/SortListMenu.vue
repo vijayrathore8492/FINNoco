@@ -40,6 +40,11 @@ const columnByID = computed(() =>
   }, {} as Record<string, ColumnType>),
 )
 
+const getColumnUidtByID = (key?: string) => {
+  if (!key) return ''
+  return columnByID.value[key]?.uidt || ''
+}
+
 watch(
   () => view.value?.id,
   (viewId) => {
@@ -61,7 +66,7 @@ useMenuCloseOnEsc(open)
           <MdiSort />
 
           <!-- Sort -->
-          <span class="text-capitalize !text-sm font-weight-normal">{{ $t('activity.sort') }}</span>
+          <span class="text-capitalize !text-xs font-weight-normal">{{ $t('activity.sort') }}</span>
           <MdiMenuDown class="text-grey" />
 
           <span v-if="sorts?.length" class="nc-count-badge">{{ sorts.length }}</span>
@@ -74,7 +79,7 @@ useMenuCloseOnEsc(open)
         data-testid="nc-sorts-menu"
       >
         <div v-if="sorts?.length" class="sort-grid mb-2" @click.stop>
-          <template v-for="(sort, i) in sorts || []" :key="i">
+          <template v-for="(sort, i) of sorts" :key="i">
             <MdiCloseBox class="nc-sort-item-remove-btn text-grey self-center" small @click.stop="deleteSort(sort, i)" />
 
             <LazySmartsheetToolbarFieldListAutoCompleteDropdown
@@ -95,7 +100,7 @@ useMenuCloseOnEsc(open)
               @select="saveOrUpdate(sort, i)"
             >
               <a-select-option
-                v-for="(option, j) in getSortDirectionOptions(columnByID[sort.fk_column_id]?.uidt)"
+                v-for="(option, j) of getSortDirectionOptions(getColumnUidtByID(sort.fk_column_id))"
                 :key="j"
                 :value="option.value"
               >

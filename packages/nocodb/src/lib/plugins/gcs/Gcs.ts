@@ -1,4 +1,5 @@
 import fs from 'fs';
+import { promisify } from 'util';
 import { Storage, StorageOptions } from '@google-cloud/storage';
 import { IStorageAdapterV2, XcFile } from 'nc-plugin';
 import request from 'request';
@@ -100,7 +101,7 @@ export default class Gcs implements IStorageAdapterV2 {
         originalname: 'temp.txt',
         size: '',
       });
-      fs.unlinkSync(tempFile);
+      await promisify(fs.unlink)(tempFile);
       return true;
     } catch (e) {
       throw e;

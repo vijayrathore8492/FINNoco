@@ -17,7 +17,6 @@ import {
   useApi,
   useBreakpoints,
   useCopy,
-  useGlobal,
   useNuxtApp,
   useSidebar,
   useUIPermission,
@@ -42,8 +41,6 @@ const { md } = useBreakpoints(breakpointsTailwind)
 const filterQuery = ref('')
 
 const projects = ref<ProjectType[]>()
-
-const { appInfo } = useGlobal()
 
 const loadProjects = async () => {
   const response = await api.project.list({})
@@ -152,9 +149,13 @@ onBeforeMount(loadProjects)
 const { copy } = useCopy()
 
 const copyProjectMeta = async () => {
-  const aggregatedMetaInfo = await $api.utils.aggregatedMetaInfo()
-  copy(JSON.stringify(aggregatedMetaInfo))
-  message.info('Copied aggregated project meta to clipboard')
+  try {
+    const aggregatedMetaInfo = await $api.utils.aggregatedMetaInfo()
+    await copy(JSON.stringify(aggregatedMetaInfo))
+    message.info('Copied aggregated project meta to clipboard')
+  } catch (e) {
+    message.error(await extractSdkResponseErrorMsg(e))
+  }
 }
 </script>
 
@@ -191,6 +192,7 @@ const copyProjectMeta = async () => {
 
       <div class="flex-1" />
 
+<<<<<<< HEAD
       <a-dropdown
         v-if="isUIAllowed('projectCreate', true) && (canCreateProjectWithoutExternalDB() || canConnectToExternalDB())"
         :trigger="['click']"
@@ -233,6 +235,13 @@ const copyProjectMeta = async () => {
           </a-menu>
         </template>
       </a-dropdown>
+=======
+      <button v-if="isUIAllowed('projectCreate', true)" class="nc-new-project-menu mt-4 md:mt-0" @click="navigateTo('/create')">
+        <span class="flex items-center w-full">
+          {{ $t('title.newProj') }}
+        </span>
+      </button>
+>>>>>>> 0.105.3
     </div>
 
     <!--

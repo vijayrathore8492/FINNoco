@@ -17,6 +17,9 @@ import * as nc_021_add_fields_in_token from './v2/nc_021_add_fields_in_token';
 import * as nc_022_qr_code_column_type from './v2/nc_022_qr_code_column_type';
 import * as nc_118_copy_user_id_to_fk_user_id_nc_tokens_finnoco from './v2/nc_118_copy_user_id_to_fk_user_id_nc_tokens_finnoco';
 import * as nc_119_add_visibility_rules_in_column from './v2/nc_119_add_visibility_rules_in_column';
+import * as nc_023_multiple_source from './v2/nc_023_multiple_source';
+import * as nc_024_barcode_column_type from './v2/nc_024_barcode_column_type';
+import * as nc_025_add_row_height from './v2/nc_025_add_row_height';
 
 // Create a custom migration source class
 export default class XcMigrationSourcev2 {
@@ -45,6 +48,9 @@ export default class XcMigrationSourcev2 {
       'nc_022_qr_code_column_type',
       'nc_118_copy_user_id_to_fk_user_id_nc_tokens_finnoco',
       'nc_119_add_visibility_rules_in_column',
+      'nc_023_multiple_source',
+      'nc_024_barcode_column_type',
+      'nc_025_add_row_height',
     ]);
   }
 
@@ -92,6 +98,12 @@ export default class XcMigrationSourcev2 {
         return nc_118_copy_user_id_to_fk_user_id_nc_tokens_finnoco;
       case 'nc_119_add_visibility_rules_in_column':
         return nc_119_add_visibility_rules_in_column;
+      case 'nc_023_multiple_source':
+        return nc_023_multiple_source;
+      case 'nc_024_barcode_column_type':
+        return nc_024_barcode_column_type;
+      case 'nc_025_add_row_height':
+        return nc_025_add_row_height;
     }
   }
 }

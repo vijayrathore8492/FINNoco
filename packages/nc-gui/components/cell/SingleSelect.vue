@@ -1,19 +1,25 @@
 <script lang="ts" setup>
+import { onUnmounted } from '@vue/runtime-core'
 import { message } from 'ant-design-vue'
 import tinycolor from 'tinycolor2'
 import type { Select as AntSelect } from 'ant-design-vue'
 import type { SelectOptionType } from 'nocodb-sdk'
 import {
   ActiveCellInj,
+  CellClickHookInj,
   ColumnInj,
   EditModeInj,
+  IsFormInj,
   IsKanbanInj,
   ReadonlyInj,
   computed,
   enumColor,
   extractSdkResponseErrorMsg,
   inject,
+  isDrawerOrModalExist,
   ref,
+  useEventListener,
+  useRoles,
   useSelectedCellKeyupListener,
   watch,
 } from '#imports'
@@ -21,9 +27,10 @@ import {
 interface Props {
   modelValue?: string | undefined
   rowIndex?: number
+  disableOptionCreation?: boolean
 }
 
-const { modelValue } = defineProps<Props>()
+const { modelValue, disableOptionCreation } = defineProps<Props>()
 
 const emit = defineEmits(['update:modelValue'])
 
@@ -43,11 +50,15 @@ const isKanban = inject(IsKanbanInj, ref(false))
 
 const isPublic = inject(IsPublicInj, ref(false))
 
+const isForm = inject(IsFormInj, ref(false))
+
 const { $api } = useNuxtApp()
 
 const searchVal = ref()
 
 const { getMeta } = useMetas()
+
+const { hasRole } = useRoles()
 
 const { isPg, isMysql } = useProject()
 
@@ -73,6 +84,10 @@ const isOptionMissing = computed(() => {
   return (options.value ?? []).every((op) => op.title !== searchVal.value)
 })
 
+const hasEditRoles = computed(() => hasRole('owner', true) || hasRole('creator', true) || hasRole('editor', true))
+
+const editAllowed = computed(() => (hasEditRoles.value || isForm.value) && (active.value || editable.value))
+
 const vModel = computed({
   get: () => tempSelectedOptState.value ?? modelValue,
   set: (val) => {
@@ -87,10 +102,12 @@ const vModel = computed({
 })
 
 watch(isOpen, (n, _o) => {
-  if (!n) {
-    aselect.value?.$el?.querySelector('input')?.blur()
-  } else {
-    aselect.value?.$el?.querySelector('input')?.focus()
+  if (editAllowed.value) {
+    if (!n) {
+      aselect.value?.$el?.querySelector('input')?.blur()
+    } else {
+      aselect.value?.$el?.querySelector('input')?.focus()
+    }
   }
 })
 
@@ -104,18 +121,30 @@ useSelectedCellKeyupListener(active, (e) => {
       isOpen.value = false
       break
     case 'Enter':
-      if (active.value && !isOpen.value) {
+      if (editAllowed.value && active.value && !isOpen.value) {
         isOpen.value = true
       }
       break
+    // skip space bar key press since it's used for expand row
+    case ' ':
+      break
     default:
+      if (!editAllowed.value) {
+        e.preventDefault()
+        break
+      }
       // toggle only if char key pressed
-      if (!(e.metaKey || e.ctrlKey || e.shiftKey || e.altKey) && e.key?.length === 1) {
+      if (!(e.metaKey || e.ctrlKey || e.shiftKey || e.altKey) && e.key?.length === 1 && !isDrawerOrModalExist()) {
         e.stopPropagation()
         isOpen.value = true
       }
       break
   }
+})
+
+// close dropdown list on escape
+useSelectedCellKeyupListener(isOpen, (e) => {
+  if (e.key === 'Escape') isOpen.value = false
 })
 
 async function addIfMissingAndSave() {
@@ -138,7 +167,7 @@ async function addIfMissingAndSave() {
       // todo: refactor and avoid repetition
       if (updatedColMeta.cdf) {
         // Postgres returns default value wrapped with single quotes & casted with type so we have to get value between single quotes to keep it unified for all databases
-        if (isPg.value) {
+        if (isPg(column.value.base_id)) {
           updatedColMeta.cdf = updatedColMeta.cdf.substring(
             updatedColMeta.cdf.indexOf(`'`) + 1,
             updatedColMeta.cdf.lastIndexOf(`'`),
@@ -146,7 +175,7 @@ async function addIfMissingAndSave() {
         }
 
         // Mysql escapes single quotes with backslash so we keep quotes but others have to unescaped
-        if (!isMysql.value) {
+        if (!isMysql(column.value.base_id)) {
           updatedColMeta.cdf = updatedColMeta.cdf.replace(/''/g, "'")
         }
       }
@@ -168,6 +197,22 @@ const search = () => {
   searchVal.value = aselect.value?.$el?.querySelector('.ant-select-selection-search-input')?.value
 }
 
+// prevent propagation of keydown event if select is open
+const onKeydown = (e: KeyboardEvent) => {
+  if (isOpen.value && (active.value || editable.value)) {
+    e.stopPropagation()
+  }
+  if (e.key === 'Enter') {
+    e.stopPropagation()
+  }
+}
+
+const onSelect = () => {
+  isOpen.value = false
+}
+
+const cellClickHook = inject(CellClickHookInj)
+
 const toggleMenu = (e: Event) => {
   // todo: refactor
   // check clicked element is clear icon
@@ -176,60 +221,91 @@ const toggleMenu = (e: Event) => {
     (e.target as HTMLElement)?.closest('.ant-select-clear')
   ) {
     vModel.value = ''
-    return
+    return e.stopPropagation()
   }
-  isOpen.value = (active.value || editable.value) && !isOpen.value
+  if (cellClickHook) return
+  isOpen.value = editAllowed.value && !isOpen.value
 }
+
+const cellClickHookHandler = () => {
+  isOpen.value = editAllowed.value && !isOpen.value
+}
+onMounted(() => {
+  cellClickHook?.on(cellClickHookHandler)
+})
+onUnmounted(() => {
+  cellClickHook?.on(cellClickHookHandler)
+})
+
+const handleClose = (e: MouseEvent) => {
+  if (isOpen.value && aselect.value && !aselect.value.$el.contains(e.target)) {
+    isOpen.value = false
+  }
+}
+
+useEventListener(document, 'click', handleClose, true)
 </script>
 
 <template>
-  <a-select
-    ref="aselect"
-    v-model:value="vModel"
-    class="w-full"
-    :allow-clear="!column.rqd && active"
-    :bordered="false"
-    :open="isOpen && (active || editable)"
-    :disabled="readOnly"
-    :show-arrow="!readOnly && (active || editable || vModel === null)"
-    :dropdown-class-name="`nc-dropdown-single-select-cell ${isOpen ? 'active' : ''}`"
-    show-search
-    @select="isOpen = false"
-    @keydown.stop
-    @search="search"
-    @click="toggleMenu"
-  >
-    <a-select-option
-      v-for="op of options"
-      :key="op.title"
-      :value="op.title"
-      :data-testid="`select-option-${column.title}-${rowIndex}`"
-      @click.stop
+  <div class="h-full w-full flex items-center nc-single-select" :class="{ 'read-only': readOnly }" @click="toggleMenu">
+    <a-select
+      ref="aselect"
+      v-model:value="vModel"
+      class="w-full"
+      :class="{ 'caret-transparent': !hasEditRoles }"
+      :allow-clear="!column.rqd && editAllowed"
+      :bordered="false"
+      :open="isOpen && (active || editable)"
+      :disabled="readOnly || !(active || editable)"
+      :show-arrow="hasEditRoles && !readOnly && (editable || (active && vModel === null))"
+      :dropdown-class-name="`nc-dropdown-single-select-cell ${isOpen && (active || editable) ? 'active' : ''}`"
+      :show-search="isOpen && (active || editable)"
+      @select="onSelect"
+      @keydown="onKeydown($event)"
+      @search="search"
     >
-      <a-tag class="rounded-tag" :color="op.color">
-        <span
-          :style="{
-            'color': tinycolor.isReadable(op.color || '#ccc', '#fff', { level: 'AA', size: 'large' })
-              ? '#fff'
-              : tinycolor.mostReadable(op.color || '#ccc', ['#0b1d05', '#fff']).toHex8String(),
-            'font-size': '13px',
-          }"
-          :class="{ 'text-sm': isKanban }"
-        >
-          {{ op.title }}
-        </span>
-      </a-tag>
-    </a-select-option>
-
-    <a-select-option v-if="searchVal && isOptionMissing && !isPublic" :key="searchVal" :value="searchVal">
-      <div class="flex gap-2 text-gray-500 items-center h-full">
-        <MdiPlusThick class="min-w-4" />
-        <div class="text-xs whitespace-normal">
-          Create new option named <strong>{{ searchVal }}</strong>
+      <a-select-option
+        v-for="op of options"
+        :key="op.title"
+        :value="op.title"
+        :data-testid="`select-option-${column.title}-${rowIndex}`"
+        :class="`nc-select-option-${column.title}-${op.title}`"
+        @click.stop
+      >
+        <a-tag class="rounded-tag" :color="op.color">
+          <span
+            :style="{
+              'color': tinycolor.isReadable(op.color || '#ccc', '#fff', { level: 'AA', size: 'large' })
+                ? '#fff'
+                : tinycolor.mostReadable(op.color || '#ccc', ['#0b1d05', '#fff']).toHex8String(),
+              'font-size': '13px',
+            }"
+            :class="{ 'text-sm': isKanban }"
+          >
+            {{ op.title }}
+          </span>
+        </a-tag>
+      </a-select-option>
+      <a-select-option
+        v-if="
+          searchVal &&
+          isOptionMissing &&
+          !isPublic &&
+          !disableOptionCreation &&
+          (hasRole('owner', true) || hasRole('creator', true))
+        "
+        :key="searchVal"
+        :value="searchVal"
+      >
+        <div class="flex gap-2 text-gray-500 items-center h-full">
+          <MdiPlusThick class="min-w-4" />
+          <div class="text-xs whitespace-normal">
+            Create new option named <strong>{{ searchVal }}</strong>
+          </div>
         </div>
-      </div>
-    </a-select-option>
-  </a-select>
+      </a-select-option>
+    </a-select>
+  </div>
 </template>
 
 <style scoped lang="scss">
@@ -243,5 +319,24 @@ const toggleMenu = (e: Event) => {
 
 :deep(.ant-select-clear) {
   opacity: 1;
+}
+
+.nc-single-select:not(.read-only) {
+  :deep(.ant-select-selector),
+  :deep(.ant-select-selector input) {
+    @apply !cursor-pointer;
+  }
+}
+
+:deep(.ant-select-selector) {
+  @apply !px-0;
+}
+
+:deep(.ant-select-selection-search-input) {
+  @apply !text-xs;
+}
+
+:deep(.ant-select-clear > span) {
+  @apply block;
 }
 </style>

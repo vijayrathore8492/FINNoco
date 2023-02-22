@@ -17,31 +17,16 @@ export class ProjectsPage extends BasePage {
   }
 
   // create project
-  async createProject({
-    name = 'sample',
-    type = 'xcdb',
-    withoutPrefix,
-  }: {
-    name?: string;
-    type?: string;
-    withoutPrefix?: boolean;
-  }) {
+  async createProject({ name = 'sample', withoutPrefix }: { name?: string; type?: string; withoutPrefix?: boolean }) {
     if (!withoutPrefix) name = this.prefixTitle(name);
 
+    // Click "New Project" button
     await this.get().locator('.nc-new-project-menu').click();
-
-    const createProjectMenu = await this.rootPage.locator('.nc-dropdown-create-project');
-
-    if (type === 'xcdb') {
-      await createProjectMenu.locator(`.ant-dropdown-menu-title-content`).nth(0).click();
-    } else {
-      await createProjectMenu.locator(`.ant-dropdown-menu-title-content`).nth(1).click();
-    }
 
     await this.rootPage.locator(`.nc-metadb-project-name`).waitFor();
     await this.rootPage.locator(`input.nc-metadb-project-name`).fill(name);
 
-    const createProjectSubmitAction = this.rootPage.locator(`button:has-text("Create")`).click();
+    const createProjectSubmitAction = () => this.rootPage.locator(`button:has-text("Create")`).click();
     await this.waitForResponse({
       uiAction: createProjectSubmitAction,
       httpMethodsToMatch: ['POST'],
@@ -57,7 +42,7 @@ export class ProjectsPage extends BasePage {
   }
 
   async reloadProjects() {
-    const reloadUiAction = this.get().locator('[data-testid="projects-reload-button"]').click();
+    const reloadUiAction = () => this.get().locator('[data-testid="projects-reload-button"]').click();
     await this.waitForResponse({
       uiAction: reloadUiAction,
       requestUrlPathToMatch: '/api/v1/db/meta/projects',
@@ -134,7 +119,7 @@ export class ProjectsPage extends BasePage {
 
     await this.get().locator(`[data-testid="delete-project-${title}"]`).click();
 
-    const deleteProjectAction = this.rootPage.locator(`button:has-text("Yes")`).click();
+    const deleteProjectAction = () => this.rootPage.locator(`button:has-text("Yes")`).click();
     await this.waitForResponse({
       uiAction: deleteProjectAction,
       httpMethodsToMatch: ['DELETE'],
@@ -164,7 +149,7 @@ export class ProjectsPage extends BasePage {
 
     await project.locator('input.nc-metadb-project-name').fill(newTitle);
     // press enter to save
-    const submitAction = project.locator('input.nc-metadb-project-name').press('Enter');
+    const submitAction = () => project.locator('input.nc-metadb-project-name').press('Enter');
     await this.waitForResponse({
       uiAction: submitAction,
       requestUrlPathToMatch: 'api/v1/db/meta/projects/',

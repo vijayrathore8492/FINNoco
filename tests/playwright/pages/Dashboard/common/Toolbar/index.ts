@@ -14,6 +14,7 @@ import { FormPage } from '../../Form';
 import { ToolbarStackbyPage } from './StackBy';
 import { ToolbarAddEditStackPage } from './AddEditKanbanStack';
 import { ToolbarSearchDataPage } from './SearchData';
+import { RowHeight } from './RowHeight';
 
 export class ToolbarPage extends BasePage {
   readonly parent: GridPage | GalleryPage | FormPage | KanbanPage;
@@ -26,6 +27,7 @@ export class ToolbarPage extends BasePage {
   readonly stackBy: ToolbarStackbyPage;
   readonly addEditStack: ToolbarAddEditStackPage;
   readonly searchData: ToolbarSearchDataPage;
+  readonly rowHeight: RowHeight;
 
   constructor(parent: GridPage | GalleryPage | FormPage | KanbanPage) {
     super(parent.rootPage);
@@ -39,6 +41,7 @@ export class ToolbarPage extends BasePage {
     this.stackBy = new ToolbarStackbyPage(this);
     this.addEditStack = new ToolbarAddEditStackPage(this);
     this.searchData = new ToolbarSearchDataPage(this);
+    this.rowHeight = new RowHeight(this);
   }
 
   get() {
@@ -79,10 +82,10 @@ export class ToolbarPage extends BasePage {
   }: { networkValidation?: boolean } = {}) {
     const menuOpen = await this.filter.get().isVisible();
 
-    const clickFilterAction = this.get().locator(`button.nc-filter-menu-btn`).click();
+    const clickFilterAction = () => this.get().locator(`button.nc-filter-menu-btn`).click();
     // Wait for the menu to close
     if (menuOpen) {
-      await clickFilterAction;
+      await clickFilterAction();
       await this.filter.get().waitFor({ state: 'hidden' });
     } else {
       if (networkValidation) {
@@ -93,7 +96,7 @@ export class ToolbarPage extends BasePage {
           httpMethodsToMatch: ['GET'],
         });
       } else {
-        await clickFilterAction;
+        await clickFilterAction();
       }
     }
   }
@@ -131,9 +134,14 @@ export class ToolbarPage extends BasePage {
     await download.saveAs('./output/at.txt');
 
     // verify downloaded content against expected content
-    const expectedData = fs.readFileSync(`./fixtures/${verificationFile}`, 'utf8');
-    const file = fs.readFileSync('./output/at.txt', 'utf8');
+    const expectedData = fs.readFileSync(`./fixtures/${verificationFile}`, 'utf8').replace(/\r/g, '').split('\n');
+    const file = fs.readFileSync('./output/at.txt', 'utf8').replace(/\r/g, '').split('\n');
     await expect(file).toEqual(expectedData);
+  }
+
+  async clickRowHeight() {
+    // ant-btn nc-height-menu-btn nc-toolbar-btn
+    await this.get().locator(`.nc-toolbar-btn.nc-height-menu-btn`).click();
   }
 
   async verifyStackByButton({ title }: { title: string }) {

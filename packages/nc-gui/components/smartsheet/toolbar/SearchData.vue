@@ -1,4 +1,5 @@
 <script lang="ts" setup>
+import type { TableType } from 'nocodb-sdk'
 import {
   ActiveViewInj,
   ReloadViewDataHookInj,
@@ -25,9 +26,9 @@ const searchDropdown = ref(null)
 onClickOutside(searchDropdown, () => (isDropdownOpen.value = false))
 
 const columns = computed(() =>
-  meta.value?.columns?.map((c) => ({
-    value: c.id,
-    label: c.title,
+  (meta.value as TableType)?.columns?.map((column) => ({
+    value: column.id,
+    label: column.title,
   })),
 )
 
@@ -72,7 +73,7 @@ function onPressEnter() {
     <a-input
       v-model:value="search.query"
       size="small"
-      class="max-w-[200px]"
+      class="max-w-[200px] !text-xs"
       :placeholder="$t('placeholder.filterQuery')"
       :bordered="false"
       data-testid="search-data-input"
@@ -82,3 +83,9 @@ function onPressEnter() {
     </a-input>
   </div>
 </template>
+
+<style scoped>
+:deep(input::placeholder) {
+  @apply !text-xs;
+}
+</style>

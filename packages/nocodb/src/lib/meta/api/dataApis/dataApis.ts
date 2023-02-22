@@ -334,7 +334,9 @@ async function dataRead(req, res: Response, next) {
     );
   } catch (e) {
     console.log(e);
-    res.status(500).json({ msg: e.message });
+    NcError.internalServerError(
+      'Internal Server Error, check server log for more details'
+    );
   }
 }
 
@@ -475,6 +477,10 @@ async function getDataList(model, view: View, req) {
   } catch (e) {
     // show empty result instead of throwing error here
     // e.g. search some text in a numeric field
+    console.log(e);
+    NcError.internalServerError(
+      'Internal Server Error, check server log for more details'
+    );
   }
 
   return new PagedResponseImpl(data, {

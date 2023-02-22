@@ -38,10 +38,8 @@ export class ViewSidebarPage extends BasePage {
   private async createView({ title, locator }: { title: string; locator: Locator }) {
     await locator.click();
     await this.rootPage.locator('input[id="form_item_title"]:visible').fill(title);
-    const submitAction = this.rootPage
-      .locator('.ant-modal-content')
-      .locator('button:has-text("Submit"):visible')
-      .click();
+    const submitAction = () =>
+      this.rootPage.locator('.ant-modal-content').locator('button:has-text("Submit"):visible').click();
     await this.waitForResponse({
       httpMethodsToMatch: ['POST'],
       requestUrlPathToMatch: '/api/v1/db/meta/tables/',
@@ -128,16 +126,35 @@ export class ViewSidebarPage extends BasePage {
       .locator(`[data-testid="view-sidebar-view-actions-${title}"]`)
       .locator('.nc-view-copy-icon')
       .click();
-    const submitAction = this.rootPage
-      .locator('.ant-modal-content')
-      .locator('button:has-text("Submit"):visible')
-      .click();
+    const submitAction = () =>
+      this.rootPage.locator('.ant-modal-content').locator('button:has-text("Submit"):visible').click();
     await this.waitForResponse({
       httpMethodsToMatch: ['POST'],
       requestUrlPathToMatch: '/api/v1/db/meta/tables/',
       uiAction: submitAction,
     });
     await this.verifyToast({ message: 'View created successfully' });
+  }
+
+  async changeViewIcon({ title, icon }: { title: string; icon: string }) {
+    await this.get().locator(`[data-testid="view-sidebar-view-${title}"] .nc-view-icon`).click();
+
+    await this.rootPage.getByTestId('nc-emoji-filter').type(icon);
+    await this.rootPage.getByTestId('nc-emoji-container').locator(`.nc-emoji-item >> svg`).first().click();
+
+    await this.rootPage.getByTestId('nc-emoji-container').isHidden();
+    await expect(
+      this.get().locator(`[data-testid="view-sidebar-view-${title}"] [data-testid="nc-icon-emojione:${icon}"]`)
+    ).toHaveCount(1);
+  }
+
+  async verifyTabIcon({ title, icon }: { title: string; icon: string }) {
+    await new Promise(resolve => setTimeout(resolve, 1000));
+    await expect(
+      this.rootPage.locator(
+        `[data-testid="nc-tab-title"]:has-text("${title}") [data-testid="nc-tab-icon-emojione:${icon}"]`
+      )
+    ).toBeVisible();
   }
 
   async validateRoleAccess(param: { role: string }) {

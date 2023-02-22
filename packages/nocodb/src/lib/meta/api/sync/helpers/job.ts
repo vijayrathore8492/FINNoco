@@ -8,6 +8,7 @@ import { Api } from 'nocodb-sdk';
 import Airtable from 'airtable';
 import jsonfile from 'jsonfile';
 import hash from 'object-hash';
+import { promisify } from 'util';
 
 import dayjs from 'dayjs';
 import utc from 'dayjs/plugin/utc';
@@ -15,6 +16,8 @@ import tinycolor from 'tinycolor2';
 import { importData, importLTARData } from './readAndProcessData';
 
 import EntityMap from './EntityMap';
+
+const writeJsonFileAsync = promisify(jsonfile.writeFile);
 
 dayjs.extend(utc);
 
@@ -191,13 +194,21 @@ export default async (
     rtc.fetchAt.count++;
     rtc.fetchAt.time += duration;
 
+    if (!ft.baseId) {
+      throw {
+        message:
+          'Invalid Shared Base ID :: Ensure www.airtable.com/<SharedBaseID> is accessible. Refer https://bit.ly/3x0OdXI for details',
+      };
+    }
+
     const file = ft.schema;
     baseId = ft.baseId;
     base = new Airtable({ apiKey: sDB.apiKey }).base(baseId);
     // store copy of airtable schema globally
     g_aTblSchema = file.tableSchemas;
 
-    if (debugMode) jsonfile.writeFileSync('aTblSchema.json', ft, { spaces: 2 });
+    if (debugMode)
+      await writeJsonFileAsync('aTblSchema.json', ft, { spaces: 2 });
 
     return file;
   }
@@ -209,12 +220,14 @@ export default async (
     rtc.fetchAt.count++;
     rtc.fetchAt.time += duration;
 
-    if (debugMode) jsonfile.writeFileSync(`${viewId}.json`, ft, { spaces: 2 });
+    if (debugMode)
+      await writeJsonFileAsync(`${viewId}.json`, ft, { spaces: 2 });
     return ft.view;
   }
 
   function getRootDbType() {
-    return ncCreatedProjectSchema?.bases[0]?.type;
+    return ncCreatedProjectSchema?.bases.find((el) => el.id === syncDB.baseId)
+      ?.type;
   }
 
   // base mapping table
@@ -238,7 +251,7 @@ export default async (
     count: UITypes.Count,
     lookup: UITypes.Lookup,
     autoNumber: UITypes.AutoNumber,
-    barcode: UITypes.Barcode,
+    barcode: UITypes.SingleLineText,
     button: UITypes.Button,
   };
 
@@ -312,7 +325,10 @@ export default async (
   // @ts-ignore
   async function nc_DumpTableSchema() {
     console.log('[');
-    const ncTblList = await api.dbTable.list(ncCreatedProjectSchema.id);
+    const ncTblList = await api.base.tableList(
+      ncCreatedProjectSchema.id,
+      syncDB.baseId
+    );
     for (let i = 0; i < ncTblList.list.length; i++) {
       const ncTbl = await api.dbTable.read(ncTblList.list[i].id);
       console.log(JSON.stringify(ncTbl, null, 2));
@@ -611,11 +627,12 @@ export default async (
     for (let idx = 0; idx < tables.length; idx++) {
       logBasic(`:: [${idx + 1}/${tables.length}] ${tables[idx].title}`);
 
-      logDetailed(`NC API: dbTable.create ${tables[idx].title}`);
+      logDetailed(`NC API: base.tableCreate ${tables[idx].title}`);
 
       let _perfStart = recordPerfStart();
-      const table: any = await api.dbTable.create(
+      const table: any = await api.base.tableCreate(
         ncCreatedProjectSchema.id,
+        syncDB.baseId,
         tables[idx]
       );
       recordPerfStats(_perfStart, 'dbTable.create');
@@ -1275,7 +1292,7 @@ export default async (
   async function nocoSetPrimary(aTblSchema) {
     for (let idx = 0; idx < aTblSchema.length; idx++) {
       logDetailed(
-        `[${idx + 1}/${aTblSchema.length}] Configuring Primary value : ${
+        `[${idx + 1}/${aTblSchema.length}] Configuring Display value : ${
           aTblSchema[idx].name
         }`
       );
@@ -1389,10 +1406,6 @@ export default async (
           } else rec[key] = `${value?.name} <${value?.email}>`;
           break;
 
-        case UITypes.Barcode:
-          rec[key] = value.text;
-          break;
-
         case UITypes.Button:
           rec[key] = `${value?.label} <${value?.url}>`;
           break;
@@ -1458,6 +1471,13 @@ export default async (
             }
 
             rec[key] = JSON.stringify(tempArr);
+          }
+          break;
+
+        case UITypes.SingleLineText:
+          // Barcode data
+          if (value?.text) {
+            rec[key] = value.text;
           }
           break;
 
@@ -1902,13 +1922,13 @@ export default async (
     logBasic(`:: Axios fetch time:    ${rtc.fetchAt.time}`);
 
     if (debugMode) {
-      jsonfile.writeFileSync('stats.json', perfStats, { spaces: 2 });
+      await writeJsonFileAsync('stats.json', perfStats, { spaces: 2 });
       const perflog = [];
       for (let i = 0; i < perfStats.length; i++) {
         perflog.push(`${perfStats[i].e}, ${perfStats[i].d}`);
       }
-      jsonfile.writeFileSync('stats.csv', perflog, { spaces: 2 });
-      jsonfile.writeFileSync('skip.txt', rtc.migrationSkipLog.log, {
+      await writeJsonFileAsync('stats.csv', perflog, { spaces: 2 });
+      await writeJsonFileAsync('skip.txt', rtc.migrationSkipLog.log, {
         spaces: 2,
       });
     }
@@ -1956,8 +1976,10 @@ export default async (
     isNotEmpty: 'notempty',
     contains: 'like',
     doesNotContain: 'nlike',
-    isAnyOf: 'eq',
-    isNoneOf: 'neq',
+    isAnyOf: 'anyof',
+    isNoneOf: 'nanyof',
+    '|': 'anyof',
+    '&': 'allof',
   };
 
   async function nc_configureFilters(viewId, f) {
@@ -1997,17 +2019,22 @@ export default async (
         datatype === UITypes.SingleSelect ||
         datatype === UITypes.MultiSelect
       ) {
+        if (filter.operator === 'doesNotContain') {
+          filter.operator = 'isNoneOf';
+        }
         // if array, break it down to multiple filters
         if (Array.isArray(filter.value)) {
-          for (let i = 0; i < filter.value.length; i++) {
-            const fx = {
-              fk_column_id: columnId,
-              logical_op: f.conjunction,
-              comparison_op: filterMap[filter.operator],
-              value: await sMap.getNcNameFromAtId(filter.value[i]),
-            };
-            ncFilters.push(fx);
-          }
+          const fx = {
+            fk_column_id: columnId,
+            logical_op: f.conjunction,
+            comparison_op: filterMap[filter.operator],
+            value: (
+              await Promise.all(
+                filter.value.map(async (f) => await sMap.getNcNameFromAtId(f))
+              )
+            ).join(','),
+          };
+          ncFilters.push(fx);
         }
         // not array - add as is
         else if (filter.value) {
@@ -2171,6 +2198,7 @@ export default async (
     } else {
       await nocoGetProject(syncDB.projectId);
       syncDB.projectName = ncCreatedProjectSchema?.title;
+      syncDB.baseId = syncDB.baseId || ncCreatedProjectSchema.bases[0].id;
       logDetailed('Getting existing project meta');
     }
 
@@ -2204,10 +2232,10 @@ export default async (
         logDetailed('Migrating Lookup form Rollup columns completed');
       }
     }
-    logDetailed('Configuring Primary value column');
-    // configure primary values
+    logDetailed('Configuring Display Value column');
+    // configure Display Value
     await nocoSetPrimary(aTblSchema);
-    logDetailed('Configuring primary value column completed');
+    logDetailed('Configuring Display Value column completed');
 
     logBasic('Configuring User(s)');
     // add users
@@ -2228,8 +2256,11 @@ export default async (
       try {
         // await nc_DumpTableSchema();
         const _perfStart = recordPerfStart();
-        const ncTblList = await api.dbTable.list(ncCreatedProjectSchema.id);
-        recordPerfStats(_perfStart, 'dbTable.list');
+        const ncTblList = await api.base.tableList(
+          ncCreatedProjectSchema.id,
+          syncDB.baseId
+        );
+        recordPerfStats(_perfStart, 'base.tableList');
 
         logBasic('Reading Records...');
 
@@ -2385,6 +2416,7 @@ export interface AirtableSyncConfig {
   authToken: string;
   projectName?: string;
   projectId?: string;
+  baseId?: string;
   apiKey: string;
   shareId: string;
   options: {

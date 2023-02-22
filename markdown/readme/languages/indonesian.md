@@ -34,19 +34,6 @@ Mengubah MySQL, PostgreSQL, SQL Server, SQLite & MariaDB apapun menjadi spreadsh
 
 # Mulai Cepat
 
-### 1-Klik Deploy
-
-#### Heroku
-
-<a href="https://heroku.com/deploy?template=https://github.com/nocodb/nocodb-seed-heroku">
-    <img 
-    src="https://www.herokucdn.com/deploy/button.svg" 
-    width="300px"
-    alt="Deploy NocoDB to Heroku with 1-Click" 
-    />
-</a>
-<br>
-
 ### Menggunakan Docker
 
 ```bash
@@ -195,7 +182,7 @@ docker-compose up -d
 
 ## Environment variables
 
-Please refer to [Environment variables](https://docs.nocodb.com/getting-started/installation#environment-variables)
+Please refer to [Environment variables](https://docs.nocodb.com/getting-started/environment-variables)
 
 # Pengaturan Pengembangan
 

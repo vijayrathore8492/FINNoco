@@ -2,23 +2,58 @@
 import { Request, Response, Router } from 'express';
 import multer from 'multer';
 import { nanoid } from 'nanoid';
+import { OrgUserRoles, ProjectRoles } from 'nocodb-sdk';
 import path from 'path';
 import slash from 'slash';
+import Noco from '../../Noco';
+import { MetaTable } from '../../utils/globals';
 import mimetypes, { mimeIcons } from '../../utils/mimeTypes';
 import { Tele } from 'nc-help';
 import ncMetaAclMw from '../helpers/ncMetaAclMw';
-import catchError, { NcError } from '../helpers/catchError';
-import NcPluginMgrv2 from '../helpers/NcPluginMgrv2';
 import Model from '../../../lib/models/Model';
 import Project from '../../../lib/models/Project';
 import S3 from '../../plugins/s3/S3';
 import NcConnectionMgrv2 from '../../utils/common/NcConnectionMgrv2';
-import { NC_ATTACHMENT_FIELD_SIZE } from '../../constants';
 import { BaseModelSqlv2 } from '../../db/sql-data-mapper/lib/sql/BaseModelSqlv2';
 import Base from '../../models/Base';
 import Column from '../../models/Column';
+import extractProjectIdAndAuthenticate from '../helpers/extractProjectIdAndAuthenticate';
+import catchError, { NcError } from '../helpers/catchError';
+import NcPluginMgrv2 from '../helpers/NcPluginMgrv2';
+import Local from '../../v1-legacy/plugins/adapters/storage/Local';
+import { NC_ATTACHMENT_FIELD_SIZE } from '../../constants';
+import { getCacheMiddleware } from './helpers';
 
-// const storageAdapter = new Local();
+const isUploadAllowed = async (req: Request, _res: Response, next: any) => {
+  if (!req['user']?.id) {
+    if (!req['user']?.isPublicBase) {
+      NcError.unauthorized('Unauthorized');
+    }
+  }
+
+  try {
+    // check user is super admin or creator
+    if (
+      req['user'].roles?.includes(OrgUserRoles.SUPER_ADMIN) ||
+      req['user'].roles?.includes(OrgUserRoles.CREATOR) ||
+      req['user'].roles?.includes(ProjectRoles.EDITOR) ||
+      // if viewer then check at-least one project have editor or higher role
+      // todo: cache
+      !!(await Noco.ncMeta
+        .knex(MetaTable.PROJECT_USERS)
+        .where(function () {
+          this.where('roles', ProjectRoles.OWNER);
+          this.orWhere('roles', ProjectRoles.CREATOR);
+          this.orWhere('roles', ProjectRoles.EDITOR);
+        })
+        .andWhere('fk_user_id', req['user'].id)
+        .first())
+    )
+      return next();
+  } catch {}
+  NcError.badRequest('Upload not allowed');
+};
+
 export async function upload(req: Request, res: Response) {
   const { column, filePath } = await extractInfoFromRequest(req);
   const attachments = await uploadAttachment(
@@ -73,24 +108,30 @@ export async function uploadViaURL(req: Request, res: Response) {
   const destPath = path.join('nc', 'uploads', ...filePath);
 
   const storageAdapter = await NcPluginMgrv2.storageAdapter();
+
   const attachments = await Promise.all(
     req.body?.map?.(async (urlMeta) => {
       const { url, fileName: _fileName } = urlMeta;
-      const fileName = `${nanoid(6)}${_fileName || url.split('/').pop()}`;
 
-      let attachmentUrl = await (storageAdapter as any).fileCreateByUrl(
+      const fileName = `${nanoid(18)}${_fileName || url.split('/').pop()}`;
+
+      const attachmentUrl = await (storageAdapter as any).fileCreateByUrl(
         slash(path.join(destPath, fileName)),
         url
       );
 
+      let attachmentPath;
+
+      // if `attachmentUrl` is null, then it is local attachment
       if (!attachmentUrl) {
-        attachmentUrl = `${(req as any).ncSiteUrl}/download/${filePath.join(
-          '/'
-        )}/${fileName}`;
+        // then store the attachement path only
+        // url will be constructued in `useAttachmentCell`
+        attachmentPath = `download/${filePath.join('/')}/${fileName}`;
       }
 
       return {
-        url: attachmentUrl,
+        ...(attachmentUrl ? { url: attachmentUrl } : {}),
+        ...(attachmentPath ? { path: attachmentPath } : {}),
         title: fileName,
         mimetype: urlMeta.mimetype,
         size: urlMeta.size,
@@ -106,12 +147,12 @@ export async function uploadViaURL(req: Request, res: Response) {
 
 export async function fileRead(req, res) {
   try {
-    const storageAdapter = await NcPluginMgrv2.storageAdapter();
-    // const type = mimetypes[path.extname(req.s.fileName).slice(1)] || 'text/plain';
+    // get the local storage adapter to display local attachments
+    const storageAdapter = new Local();
     const type =
       mimetypes[path.extname(req.params?.[0]).split('/').pop().slice(1)] ||
       'text/plain';
-    // const img = await this.storageAdapter.fileRead(slash(path.join('nc', req.params.projectId, req.params.dbAlias, 'uploads', req.params.fileName)));
+
     const img = await storageAdapter.fileRead(
       slash(
         path.join(
@@ -149,12 +190,18 @@ async function uploadAttachment(filePath, column, files, ncSiteUrl) {
         column.public
       );
 
+      let attachmentPath;
+
+      // if `url` is null, then it is local attachment
       if (!url) {
-        url = `${ncSiteUrl}/download/${filePath.join('/')}/${fileName}`;
+        // then store the attachement path only
+        // url will be constructued in `useAttachmentCell`
+        attachmentPath = `download/${filePath.join('/')}/${fileName}`;
       }
 
       return {
-        url,
+        ...(url ? { url } : {}),
+        ...(attachmentPath ? { path: attachmentPath } : {}),
         title: file.originalname,
         mimetype: file.mimetype,
         size: file.size,
@@ -205,32 +252,36 @@ function s3KeyObject(storageAdapter, key: string) {
 
 const router = Router({ mergeParams: true });
 
-router.get(/^\/dl\/([^/]+)\/([^/]+)\/(.+)$/, async (req, res) => {
-  try {
-    // const type = mimetypes[path.extname(req.params.fileName).slice(1)] || 'text/plain';
-    const type =
-      mimetypes[path.extname(req.params[2]).split('/').pop().slice(1)] ||
-      'text/plain';
+router.get(
+  /^\/dl\/([^/]+)\/([^/]+)\/(.+)$/,
+  getCacheMiddleware(),
+  async (req, res) => {
+    try {
+      // const type = mimetypes[path.extname(req.params.fileName).slice(1)] || 'text/plain';
+      const type =
+        mimetypes[path.extname(req.params[2]).split('/').pop().slice(1)] ||
+        'text/plain';
 
-    const storageAdapter = await NcPluginMgrv2.storageAdapter();
-    // const img = await this.storageAdapter.fileRead(slash(path.join('nc', req.params.projectId, req.params.dbAlias, 'uploads', req.params.fileName)));
-    const img = await storageAdapter.fileRead(
-      slash(
-        path.join(
-          'nc',
-          req.params[0],
-          req.params[1],
-          'uploads',
-          ...req.params[2].split('/')
+      const storageAdapter = await NcPluginMgrv2.storageAdapter();
+      // const img = await this.storageAdapter.fileRead(slash(path.join('nc', req.params.projectId, req.params.dbAlias, 'uploads', req.params.fileName)));
+      const img = await storageAdapter.fileRead(
+        slash(
+          path.join(
+            'nc',
+            req.params[0],
+            req.params[1],
+            'uploads',
+            ...req.params[2].split('/')
+          )
         )
-      )
-    );
-    res.writeHead(200, { 'Content-Type': type });
-    res.end(img, 'binary');
-  } catch (e) {
-    res.status(404).send('Not found');
+      );
+      res.writeHead(200, { 'Content-Type': type });
+      res.end(img, 'binary');
+    } catch (e) {
+      res.status(404).send('Not found');
+    }
   }
-});
+);
 
 export function sanitizeUrlPath(paths) {
   return paths.map((url) => url.replace(/[/.?#]+/g, '_'));
@@ -244,11 +295,21 @@ router.post(
       fieldSize: NC_ATTACHMENT_FIELD_SIZE,
     },
   }).any(),
-  ncMetaAclMw(upload, 'upload')
+  [
+    extractProjectIdAndAuthenticate,
+    catchError(isUploadAllowed),
+    catchError(upload),
+  ]
 );
+
 router.post(
   '/api/v1/db/storage/upload-by-url',
-  ncMetaAclMw(uploadViaURL, 'uploadViaURL')
+
+  [
+    extractProjectIdAndAuthenticate,
+    catchError(isUploadAllowed),
+    catchError(uploadViaURL),
+  ]
 );
 router.post(
   '/api/v1/db/storage/upload-with-update/:rowId',
@@ -257,6 +318,7 @@ router.post(
   }).any(),
   ncMetaAclMw(uploadWithUpdate, 'upload')
 );
-router.get(/^\/download\/(.+)$/, catchError(fileRead));
+
+router.get(/^\/download\/(.+)$/, getCacheMiddleware(), catchError(fileRead));
 
 export default router;

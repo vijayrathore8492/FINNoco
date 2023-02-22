@@ -19,11 +19,15 @@ const emit = defineEmits(['update:value'])
 
 const vModel = useVModel(props, 'value', emit)
 
-const { isPg, isMysql } = useProject()
+const { setAdditionalValidations, validateInfos, isPg, isMysql } = useColumnCreateStoreOrThrow()
 
+<<<<<<< HEAD
 const { setAdditionalValidations, validateInfos } = useColumnCreateStoreOrThrow()
 
 let options = $ref<Option[]>([])
+=======
+let options = $ref<(Option & { status?: 'remove' })[]>([])
+>>>>>>> 0.105.3
 let renderedOptions = $ref<(Option & { status?: 'remove' })[]>([])
 let savedDefaultOption = $ref<Option | null>(null)
 let savedCdf = $ref<string | null>(null)
@@ -43,13 +47,15 @@ const validators = {
       validator: (_: any, _opt: any) => {
         return new Promise<void>((resolve, reject) => {
           for (const opt of options) {
+            if ((opt as any).status === 'remove') continue
+
             if (!opt.title.length) {
               return reject(new Error("Select options can't be null"))
             }
             if (vModel.value.uidt === UITypes.MultiSelect && opt.title.includes(',')) {
               return reject(new Error("MultiSelect columns can't have commas(',')"))
             }
-            if (options.filter((el) => el.title === opt.title).length !== 1) {
+            if (options.filter((el) => el.title === opt.title && (el as any).status !== 'remove').length > 1) {
               return reject(new Error("Select options can't have duplicates"))
             }
           }

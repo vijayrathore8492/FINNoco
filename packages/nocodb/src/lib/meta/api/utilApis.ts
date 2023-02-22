@@ -1,5 +1,6 @@
 // // Project CRUD
 import { Request, Response } from 'express';
+import { compareVersions, validate } from 'compare-versions';
 
 import { ViewTypes } from 'nocodb-sdk';
 import Project from '../../models/Project';
@@ -15,7 +16,7 @@ import NcConfigFactory, {
 import User from '../../models/User';
 import catchError from '../helpers/catchError';
 import axios from 'axios';
-import { feedbackForm } from 'nc-help';
+import { NC_ATTACHMENT_FIELD_SIZE } from '../../constants';
 
 const versionCache = {
   releaseVersion: null,
@@ -55,11 +56,15 @@ export async function appInfo(req: Request, res: Response) {
     ),
     timezone: defaultConnectionConfig.timezone,
     ncMin: !!process.env.NC_MIN,
-    teleEnabled: !process.env.NC_DISABLE_TELE,
     noSignUp: process.env.NC_NO_SIGN_UP === '1',
-    ncSiteUrl: (req as any).ncSiteUrl,
     platform: process.env.NC_ENV,
     sentryDsnFrontend: process.env.NC_SENTRY_DSN_FRONTEND,
+    teleEnabled: process.env.NC_DISABLE_TELE === 'true' ? false : true,
+    auditEnabled: process.env.NC_DISABLE_AUDIT === 'true' ? false : true,
+    ncSiteUrl: (req as any).ncSiteUrl,
+    ee: Noco.isEE(),
+    ncAttachmentFieldSize: NC_ATTACHMENT_FIELD_SIZE,
+    ncMaxAttachmentsAllowed: +(process.env.NC_MAX_ATTACHMENTS_ALLOWED || 10),
   };
 
   res.json(result);
@@ -71,17 +76,22 @@ export async function versionInfo(_req: Request, res: Response) {
     (versionCache.lastFetched &&
       versionCache.lastFetched < Date.now() - 1000 * 60 * 60)
   ) {
-    versionCache.releaseVersion = await axios
-      .get('https://github.com/nocodb/nocodb/releases/latest', {
+    const nonBetaTags = await axios
+      .get('https://api.github.com/repos/nocodb/nocodb/tags', {
         timeout: 5000,
       })
-      .then((response) =>
-        response.request.res.responseUrl.replace(
-          'https://github.com/nocodb/nocodb/releases/tag/',
-          ''
-        )
-      )
+      .then((response) => {
+        return response.data
+          .map((x) => x.name)
+          .filter(
+            (v) => validate(v) && !v.includes('finn') && !v.includes('beta')
+          )
+          .sort((x, y) => compareVersions(y, x));
+      })
       .catch(() => null);
+    if (nonBetaTags && nonBetaTags.length > 0) {
+      versionCache.releaseVersion = nonBetaTags[0];
+    }
     versionCache.lastFetched = Date.now();
   }
 
@@ -91,12 +101,6 @@ export async function versionInfo(_req: Request, res: Response) {
   };
 
   res.json(response);
-}
-
-export function feedbackFormGet(_req: Request, res: Response) {
-  feedbackForm()
-    .then((form) => res.json(form))
-    .catch((e) => res.json({ error: e.message }));
 }
 
 export async function appHealth(_: Request, res: Response) {
@@ -323,8 +327,8 @@ export async function aggregatedMetaInfo(_req: Request, res: Response) {
               project.getBases().then(async (bases) => {
                 return extractResultOrNull(
                   await Promise.allSettled(
-                    bases.map((base) =>
-                      NcConnectionMgrv2.getSqlClient(base)
+                    bases.map(async (base) =>
+                      (await NcConnectionMgrv2.getSqlClient(base))
                         .totalRecords?.()
                         ?.then((result) => result?.data)
                     )
@@ -378,7 +382,6 @@ export default (router) => {
   router.post('/api/v1/db/meta/axiosRequestMake', catchError(axiosRequestMake));
   router.get('/api/v1/version', catchError(versionInfo));
   router.get('/api/v1/health', catchError(appHealth));
-  router.get('/api/v1/feedback_form', catchError(feedbackFormGet));
   router.post('/api/v1/url_to_config', catchError(urlToDbConfig));
   router.get(
     '/api/v1/aggregated-meta-info',

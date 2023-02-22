@@ -151,7 +151,7 @@ export default class NcConnectionMgrv2 {
   // }
 
   @SqlClientDecorator.modifyColumnList()
-  public static getSqlClient(base: Base, _knex = null): any {
+  public static async getSqlClient(base: Base, _knex = null) {
     const knex = _knex || this.get(base);
     return SqlClientFactory.create({
       knex,

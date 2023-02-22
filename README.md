@@ -31,16 +31,6 @@ Turns any MySQL, PostgreSQL, SQL Server, SQLite & MariaDB into a smart-spreadshe
 
 ![All Views](https://user-images.githubusercontent.com/35857179/194825053-3aa3373d-3e0f-4b42-b3f1-42928332054a.gif)
 
-<p align="center">
-  <a href="https://heroku.com/deploy?template=https://github.com/nocodb/nocodb-seed-heroku">
-      <img 
-      src="https://www.herokucdn.com/deploy/button.svg" 
-      width="300px"
-      alt="Deploy NocoDB to Heroku with 1-Click" 
-      />
-  </a>
-</p>
-
 <div align="center">
 
 [<img height="38" src="https://user-images.githubusercontent.com/61551451/135263434-75fe793d-42af-49e4-b964-d70920e41655.png">](markdown/readme/languages/chinese.md)
@@ -65,20 +55,6 @@ Turns any MySQL, PostgreSQL, SQL Server, SQLite & MariaDB into a smart-spreadshe
 
 
 # Quick try
-
-## 1-Click Deploy to Heroku
-
-Before doing so, make sure you have a Heroku account. By default, an add-on Heroku Postgres will be used as meta database. You can see the connection string defined in `DATABASE_URL` by navigating to Heroku App Settings and selecting Config Vars.
-
-<a href="https://heroku.com/deploy?template=https://github.com/nocodb/nocodb-seed-heroku">
-    <img 
-    src="https://www.herokucdn.com/deploy/button.svg" 
-    width="300px"
-    alt="Deploy NocoDB to Heroku with 1-Click" 
-    />
-</a>
-
-<br/>
 
 ## NPX
 
@@ -212,7 +188,6 @@ Access Dashboard using : [http://localhost:8080/dashboard](http://localhost:8080
 # Table of Contents
 
 - [Quick try](#quick-try)
-  * [1-Click Deploy to Heroku](#1-click-deploy-to-heroku)
   * [NPX](#npx)
   * [Node Application](#node-application)
   * [Docker](#docker)
@@ -278,7 +253,7 @@ By default, SQLite is used for storing meta data. However, you can specify your 
 
 ## Environment variables 
 
-Please refer to [Environment variables](https://docs.nocodb.com/getting-started/installation#environment-variables)
+Please refer to [Environment variables](https://docs.nocodb.com/getting-started/environment-variables)
 
 # Development Setup 
 

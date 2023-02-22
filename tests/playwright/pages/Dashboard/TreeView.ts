@@ -6,14 +6,12 @@ export class TreeViewPage extends BasePage {
   readonly dashboard: DashboardPage;
   readonly project: any;
   readonly quickImportButton: Locator;
-  readonly inviteTeamButton: Locator;
 
   constructor(dashboard: DashboardPage, project: any) {
     super(dashboard.rootPage);
     this.dashboard = dashboard;
     this.project = project;
     this.quickImportButton = dashboard.get().locator('.nc-import-menu');
-    this.inviteTeamButton = dashboard.get().locator('.nc-share-base');
   }
 
   get() {
@@ -38,7 +36,15 @@ export class TreeViewPage extends BasePage {
 
   // assumption: first view rendered is always GRID
   //
-  async openTable({ title, mode = 'standard' }: { title: string; mode?: string }) {
+  async openTable({
+    title,
+    mode = 'standard',
+    networkResponse = true,
+  }: {
+    title: string;
+    mode?: string;
+    networkResponse?: boolean;
+  }) {
     if ((await this.get().locator('.active.nc-project-tree-tbl').count()) > 0) {
       if ((await this.get().locator('.active.nc-project-tree-tbl').innerText()) === title) {
         // table already open
@@ -46,13 +52,18 @@ export class TreeViewPage extends BasePage {
       }
     }
 
-    await this.waitForResponse({
-      uiAction: this.get().locator(`.nc-project-tree-tbl-${title}`).click(),
-      httpMethodsToMatch: ['GET'],
-      requestUrlPathToMatch: `/api/v1/db/data/noco/`,
-      responseJsonMatcher: json => json.pageInfo,
-    });
-    await this.dashboard.waitForTabRender({ title, mode });
+    if (networkResponse === true) {
+      await this.waitForResponse({
+        uiAction: () => this.get().locator(`.nc-project-tree-tbl-${title}`).click(),
+        httpMethodsToMatch: ['GET'],
+        requestUrlPathToMatch: `/api/v1/db/data/noco/`,
+        responseJsonMatcher: json => json.pageInfo,
+      });
+      await this.dashboard.waitForTabRender({ title, mode });
+    } else {
+      await this.get().locator(`.nc-project-tree-tbl-${title}`).click();
+      await this.rootPage.waitForTimeout(3000);
+    }
   }
 
   async createTable({ title, skipOpeningModal }: { title: string; skipOpeningModal?: boolean }) {
@@ -63,7 +74,7 @@ export class TreeViewPage extends BasePage {
     await this.dashboard.get().getByPlaceholder('Enter table name').fill(title);
 
     await this.waitForResponse({
-      uiAction: this.dashboard.get().locator('button:has-text("Submit")').click(),
+      uiAction: () => this.dashboard.get().locator('button:has-text("Submit")').click(),
       httpMethodsToMatch: ['POST'],
       requestUrlPathToMatch: `/api/v1/db/meta/projects/`,
       responseJsonMatcher: json => json.title === title && json.type === 'table',
@@ -90,7 +101,7 @@ export class TreeViewPage extends BasePage {
     await this.dashboard.get().locator('div.nc-project-menu-item:has-text("Delete")').click();
 
     await this.waitForResponse({
-      uiAction: this.dashboard.get().locator('button:has-text("Yes")').click(),
+      uiAction: () => this.dashboard.get().locator('button:has-text("Yes")').click(),
       httpMethodsToMatch: ['DELETE'],
       requestUrlPathToMatch: `/api/v1/db/meta/tables/`,
     });
@@ -131,13 +142,35 @@ export class TreeViewPage extends BasePage {
     await importMenu.locator(`.ant-dropdown-menu-title-content:has-text("${title}")`).click();
   }
 
+  async changeTableIcon({ title, icon }: { title: string; icon: string }) {
+    await this.get().locator(`.nc-project-tree-tbl-${title} .nc-table-icon`).click();
+
+    await this.rootPage.getByTestId('nc-emoji-filter').type(icon);
+    await this.rootPage.getByTestId('nc-emoji-container').locator(`.nc-emoji-item >> svg`).first().click();
+
+    await this.rootPage.getByTestId('nc-emoji-container').isHidden();
+    await expect(
+      this.get().locator(`.nc-project-tree-tbl-${title} [data-testid="nc-icon-emojione:${icon}"]`)
+    ).toHaveCount(1);
+  }
+
+  async verifyTabIcon({ title, icon }: { title: string; icon: string }) {
+    await new Promise(resolve => setTimeout(resolve, 1000));
+    await expect(
+      this.rootPage.locator(
+        `[data-testid="nc-tab-title"]:has-text("${title}") [data-testid="nc-tab-icon-emojione:${icon}"]`
+      )
+    ).toBeVisible();
+  }
+
+  // todo: Break this into smaller methods
   async validateRoleAccess(param: { role: string }) {
     // Add new table button
     await expect(this.get().locator(`.nc-add-new-table`)).toHaveCount(param.role === 'creator' ? 1 : 0);
     // Import menu
     await expect(this.get().locator(`.nc-import-menu`)).toHaveCount(param.role === 'creator' ? 1 : 0);
-    // Invite Team button
-    await expect(this.get().locator(`.nc-share-base`)).toHaveCount(param.role === 'creator' ? 1 : 0);
+    // Team and Settings button
+    await expect(this.get().locator(`.nc-new-base`)).toHaveCount(param.role === 'creator' ? 1 : 0);
     // Right click context menu
     await this.get().locator(`.nc-project-tree-tbl-Country`).click({
       button: 'right',

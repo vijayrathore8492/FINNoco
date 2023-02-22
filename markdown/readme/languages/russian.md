@@ -34,19 +34,6 @@
 
 # Быстрый старт
 
-### 1-Нажмите на Deploy
-
-#### Heroku
-
-<a href="https://heroku.com/deploy?template=https://github.com/nocodb/nocodb-seed-heroku">
-    <img 
-    src="https://www.herokucdn.com/deploy/button.svg" 
-    width="300px"
-    alt="Deploy NocoDB to Heroku with 1-Click" 
-    />
-</a>
-<br>
-
 ### Используя Docker
 
 ```bash
@@ -198,7 +185,7 @@ docker-compose up -d
 
 ## Переменные среды
 
-Please refer to [Environment variables](https://docs.nocodb.com/getting-started/installation#environment-variables)
+Please refer to [Environment variables](https://docs.nocodb.com/getting-started/environment-variables)
 
 # Настройка разработки
 

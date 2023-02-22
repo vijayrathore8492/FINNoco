@@ -2,6 +2,7 @@ import { expect } from '@playwright/test';
 import { GridPage } from '..';
 import BasePage from '../../../Base';
 import { SelectOptionColumnPageObject } from './SelectOptionColumn';
+import { AttachmentColumnPageObject } from './Attachment';
 
 export type AccessControlType = 'allow' | 'deny';
 
@@ -15,11 +16,13 @@ export interface ColumnVisibilityRules {
 export class ColumnPageObject extends BasePage {
   readonly grid: GridPage;
   readonly selectOption: SelectOptionColumnPageObject;
+  readonly attachmentColumnPageObject: AttachmentColumnPageObject;
 
   constructor(grid: GridPage) {
     super(grid.rootPage);
     this.grid = grid;
     this.selectOption = new SelectOptionColumnPageObject(this);
+    this.attachmentColumnPageObject = new AttachmentColumnPageObject(this);
   }
 
   get() {
@@ -39,30 +42,46 @@ export class ColumnPageObject extends BasePage {
     type = 'SingleLineText',
     formula = '',
     qrCodeValueColumnTitle = '',
+    barcodeValueColumnTitle = '',
+    barcodeFormat = '',
     childTable = '',
     childColumn = '',
     relationType = '',
     rollupType = '',
     format = '',
+    dateFormat = '',
+    timeFormat = '',
     insertAfterColumnTitle,
     insertBeforeColumnTitle,
     visibilityRules,
+    isDisplayValue = false,
   }: {
     title: string;
     type?: string;
     formula?: string;
     qrCodeValueColumnTitle?: string;
+    barcodeValueColumnTitle?: string;
+    barcodeFormat?: string;
     childTable?: string;
     childColumn?: string;
     relationType?: string;
     rollupType?: string;
     format?: string;
+    dateFormat?: string;
+    timeFormat?: string;
     insertBeforeColumnTitle?: string;
     insertAfterColumnTitle?: string;
     visibilityRules?: ColumnVisibilityRules;
+    isDisplayValue?: boolean;
   }) {
     if (insertBeforeColumnTitle) {
       await this.grid.get().locator(`th[data-title="${insertBeforeColumnTitle}"] .nc-ui-dt-dropdown`).click();
+
+      if (isDisplayValue) {
+        await expect(this.rootPage.locator('li[role="menuitem"]:has-text("Insert Before")')).toHaveCount(0);
+        return;
+      }
+
       await this.rootPage.locator('li[role="menuitem"]:has-text("Insert Before"):visible').click();
     } else if (insertAfterColumnTitle) {
       await this.grid.get().locator(`th[data-title="${insertAfterColumnTitle}"] .nc-ui-dt-dropdown`).click();
@@ -86,24 +105,24 @@ export class ColumnPageObject extends BasePage {
     switch (type) {
       case 'SingleSelect':
       case 'MultiSelect':
-        await this.selectOption.addOption({
-          index: 0,
-          option: 'Option 1',
-          skipColumnModal: true,
-        });
-        await this.selectOption.addOption({
-          index: 1,
-          option: 'Option 2',
-          skipColumnModal: true,
-        });
         break;
       case 'Duration':
-        await this.get().locator('.ant-select-single').nth(1).click();
-        await this.rootPage
-          .locator(`.ant-select-item`, {
-            hasText: format,
-          })
-          .click();
+        if (format) {
+          await this.get().locator('.ant-select-single').nth(1).click();
+          await this.rootPage
+            .locator(`.ant-select-item`, {
+              hasText: format,
+            })
+            .click();
+        }
+        break;
+      case 'DateTime':
+        // Date Format
+        await this.get().locator('.nc-date-select').click();
+        await this.rootPage.locator('.ant-select-item').locator(`text="${dateFormat}"`).click();
+        // Time Format
+        await this.get().locator('.nc-time-select').click();
+        await this.rootPage.locator('.ant-select-item').locator(`text="${timeFormat}"`).click();
         break;
       case 'Formula':
         await this.get().locator('.nc-formula-input').fill(formula);
@@ -112,7 +131,15 @@ export class ColumnPageObject extends BasePage {
         await this.get().locator('.ant-select-single').nth(1).click();
         await this.rootPage
           .locator(`.ant-select-item`, {
-            hasText: qrCodeValueColumnTitle,
+            hasText: new RegExp(`^${qrCodeValueColumnTitle}$`),
+          })
+          .click();
+        break;
+      case 'Barcode':
+        await this.get().locator('.ant-select-single').nth(1).click();
+        await this.rootPage
+          .locator(`.ant-select-item`, {
+            hasText: new RegExp(`^${barcodeValueColumnTitle}$`),
           })
           .click();
         break;
@@ -235,6 +262,28 @@ export class ColumnPageObject extends BasePage {
     await this.save();
   }
 
+  async changeReferencedColumnForBarcode({ titleOfReferencedColumn }: { titleOfReferencedColumn: string }) {
+    await this.get().locator('.nc-barcode-value-column-select .ant-select-single').click();
+    await this.rootPage
+      .locator(`.ant-select-item`, {
+        hasText: titleOfReferencedColumn,
+      })
+      .click();
+
+    await this.save();
+  }
+
+  async changeBarcodeFormat({ barcodeFormatName }: { barcodeFormatName: string }) {
+    await this.get().locator('.nc-barcode-format-select .ant-select-single').click();
+    await this.rootPage
+      .locator(`.ant-select-item`, {
+        hasText: barcodeFormatName,
+      })
+      .click();
+
+    await this.save();
+  }
+
   async delete({ title }: { title: string }) {
     await this.getColumnHeader(title).locator('svg.ant-dropdown-trigger').click();
     // await this.rootPage.locator('li[role="menuitem"]:has-text("Delete")').waitFor();
@@ -251,14 +300,18 @@ export class ColumnPageObject extends BasePage {
     type = 'SingleLineText',
     formula = '',
     format,
+    dateFormat = '',
+    timeFormat = '',
   }: {
     title: string;
     type?: string;
     formula?: string;
     format?: string;
+    dateFormat?: string;
+    timeFormat?: string;
   }) {
     await this.getColumnHeader(title).locator('.nc-ui-dt-dropdown').click();
-    await this.rootPage.locator('li[role="menuitem"]:has-text("Edit")').click();
+    await this.rootPage.locator('li[role="menuitem"]:has-text("Edit")').last().click();
 
     await this.get().waitFor({ state: 'visible' });
 
@@ -274,9 +327,21 @@ export class ColumnPageObject extends BasePage {
           })
           .click();
         break;
+      case 'DateTime':
+        // Date Format
+        await this.get().locator('.nc-date-select').click();
+        await this.rootPage.locator('.ant-select-item').locator(`text="${dateFormat}"`).click();
+        // Time Format
+        await this.get().locator('.nc-time-select').click();
+        await this.rootPage.locator('.ant-select-item').locator(`text="${timeFormat}"`).click();
+        break;
       default:
         break;
     }
+  }
+
+  async editMenuShowMore() {
+    await this.rootPage.locator('.nc-more-options').click();
   }
 
   async duplicateColumn({ title, expectedTitle = `${title}_copy` }: { title: string; expectedTitle?: string }) {
@@ -287,11 +352,16 @@ export class ColumnPageObject extends BasePage {
     await this.grid.get().locator(`th[data-title="${expectedTitle}"]`).isVisible();
   }
 
-  async hideColumn({ title }: { title: string }) {
+  async hideColumn({ title, isDisplayValue = false }: { title: string; isDisplayValue?: boolean }) {
     await this.grid.get().locator(`th[data-title="${title}"] .nc-ui-dt-dropdown`).click();
 
+    if (isDisplayValue) {
+      await expect(this.rootPage.locator('li[role="menuitem"]:has-text("Hide Field")')).toHaveCount(0);
+      return;
+    }
+
     await this.waitForResponse({
-      uiAction: this.rootPage.locator('li[role="menuitem"]:has-text("Hide Field"):visible').click(),
+      uiAction: () => this.rootPage.locator('li[role="menuitem"]:has-text("Hide Field"):visible').click(),
       requestUrlPathToMatch: 'api/v1/db/meta/views',
       httpMethodsToMatch: ['PATCH'],
     });
@@ -301,7 +371,7 @@ export class ColumnPageObject extends BasePage {
 
   async save({ isUpdated }: { isUpdated?: boolean } = {}) {
     await this.waitForResponse({
-      uiAction: this.get().locator('button:has-text("Save")').click(),
+      uiAction: () => this.get().locator('button:has-text("Save")').click(),
       requestUrlPathToMatch: 'api/v1/db/data/noco/',
       httpMethodsToMatch: ['GET'],
       responseJsonMatcher: json => json['pageInfo'],
@@ -336,9 +406,9 @@ export class ColumnPageObject extends BasePage {
     await this.grid.get().locator(`th[data-title="${title}"] .nc-ui-dt-dropdown`).click();
     let menuOption;
     if (direction === 'desc') {
-      menuOption = this.rootPage.locator('li[role="menuitem"]:has-text("Sort Descending"):visible').click();
+      menuOption = () => this.rootPage.locator('li[role="menuitem"]:has-text("Sort Descending"):visible').click();
     } else {
-      menuOption = this.rootPage.locator('li[role="menuitem"]:has-text("Sort Ascending"):visible').click();
+      menuOption = () => this.rootPage.locator('li[role="menuitem"]:has-text("Sort Ascending"):visible').click();
     }
 
     await this.waitForResponse({
@@ -360,5 +430,8 @@ export class ColumnPageObject extends BasePage {
       )
       .first()
       .isVisible();
+
+    // close sort menu
+    await this.grid.toolbar.clickSort();
   }
 }

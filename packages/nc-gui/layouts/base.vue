@@ -38,10 +38,14 @@ hooks.hook('page:finish', () => {
     </Transition>
 
     <a-layout class="!flex-col">
+<<<<<<< HEAD
       <a-layout-header
         v-if="!route.meta.public && signedIn && !route.meta.hideHeader && !hasSider"
         class="flex !bg-primary items-center text-white pl-4 pr-5 shadow-lg"
       >
+=======
+      <a-layout-header v-if="!route.meta.public && signedIn && !route.meta.hideHeader" class="nc-navbar">
+>>>>>>> 0.105.3
         <div
           v-if="!route.params.projectType"
           v-e="['c:navbar:home']"
@@ -49,7 +53,19 @@ hooks.hook('page:finish', () => {
           class="transition-all duration-200 p-2 cursor-pointer transform hover:scale-105 nc-noco-brand-icon"
           @click="navigateTo('/')"
         >
+<<<<<<< HEAD
           <NocoHeaderLogo />
+=======
+          <a-tooltip placement="bottom">
+            <template #title>
+              {{ currentVersion }}
+            </template>
+            <div class="flex items-center gap-2">
+              <img v-if="!isDashboard" width="120" alt="NocoDB" src="~/assets/img/brand/nocodb-full-color.png" />
+              <img v-else width="25" alt="NocoDB" src="~/assets/img/icons/512x512.png" />
+            </div>
+          </a-tooltip>
+>>>>>>> 0.105.3
         </div>
 
         <div class="!text-white flex justify-center">
@@ -76,7 +92,7 @@ hooks.hook('page:finish', () => {
           <a-dropdown :trigger="['click']" overlay-class-name="nc-dropdown-user-accounts-menu">
             <MdiDotsVertical
               data-testid="nc-menu-accounts"
-              class="md:text-xl cursor-pointer hover:text-accent nc-menu-accounts text-white"
+              class="md:text-xl cursor-pointer hover:text-accent nc-menu-accounts"
               @click.prevent
             />
 
@@ -153,5 +169,9 @@ hooks.hook('page:finish', () => {
   &:active::after {
     @apply ring ring-accent ring-opacity-100;
   }
+}
+
+.nc-navbar {
+  @apply flex !bg-white items-center !pl-2 !pr-5;
 }
 </style>

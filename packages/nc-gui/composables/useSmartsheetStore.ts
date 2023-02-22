@@ -14,7 +14,11 @@ const [useProvideSmartsheetStore, useSmartsheetStore] = useInjectionState(
   ) => {
     const { $api } = useNuxtApp()
 
-    const { sqlUi } = useProject()
+    const { sqlUis } = useProject()
+
+    const sqlUi = ref(
+      (meta.value as TableType)?.base_id ? sqlUis.value[(meta.value as TableType).base_id!] : Object.values(sqlUis.value)[0],
+    )
 
     const cellRefs = ref<HTMLTableDataCellElement[]>([])
 
@@ -47,7 +51,7 @@ const [useProvideSmartsheetStore, useSmartsheetStore] = useInjectionState(
     })
 
     const isSqlView = computed(() => (meta.value as TableType)?.type === 'view')
-    const sorts = ref<SortType[]>(unref(initialSorts) ?? [])
+    const sorts = ref<Required<SortType>[]>((unref(initialSorts) as Required<SortType>[]) ?? [])
     const nestedFilters = ref<FilterType[]>(unref(initialFilters) ?? [])
 
     return {

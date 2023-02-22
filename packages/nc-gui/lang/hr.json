@@ -205,7 +205,8 @@
     "quickImport": "Quick Import",
     "advancedSettings": "Advanced Settings",
     "codeSnippet": "Code Snippet",
-    "keyboardShortcut": "Keyboard Shortcuts"
+    "keyboardShortcut": "Keyboard Shortcuts",
+    "generateRandomName": "Generate Random Name"
   },
   "labels": {
     "createdBy": "Created By",
@@ -248,7 +249,10 @@
     "sqlOutput": "SQL izlaz",
     "addOption": "Dodajte opciju",
     "qrCodeValueColumn": "Column with QR code value",
+    "barcodeValueColumn": "Column with Barcode value",
+    "barcodeFormat": "Barcode format",
     "qrCodeValueTooLong": "Too many characters for a QR code",
+    "barcodeValueTooLong": "Too many characters for a barcode",
     "aggregateFunction": "Agregatna funkcija",
     "dbCreateIfNotExists": "Baza podataka: stvoriti ako ne postoji",
     "clientKey": "Ključ klijenta",
@@ -274,6 +278,7 @@
     "selectUserRole": "Odaberite korisničku ulogu",
     "childTable": "Dječji stol",
     "childColumn": "Dječji stupac",
+    "linkToAnotherRecord": "Link to another record",
     "onUpdate": "Na ažuriranje",
     "onDelete": "Na brisanje",
     "account": "Account",
@@ -308,7 +313,9 @@
     "signInWithGoogle": "Sign in with Google",
     "agreeToTos": "By signing up, you agree to the Terms of Service",
     "welcomeToNc": "Welcome to NocoDB!",
-    "inviteOnlySignup": "Allow signup only using invite url"
+    "inviteOnlySignup": "Allow signup only using invite url",
+    "nextRow": "Next Row",
+    "prevRow": "Previous Row"
   },
   "activity": {
     "createProject": "Stvoriti projekt",
@@ -373,13 +380,14 @@
     "renameTable": "Preimenovati stolom",
     "deleteTable": "Obriši tablicu",
     "addField": "Dodajte novo polje na ovu tablicu",
-    "setPrimary": "Postavite kao primarnu vrijednost",
+    "setDisplay": "Set as Display value",
     "addRow": "Dodaj novi red",
     "saveRow": "Spremanje retka",
     "saveAndExit": "Save & Exit",
     "saveAndStay": "Save & Stay",
     "insertRow": "Umetnite novi red",
     "deleteRow": "Brisanje retka",
+    "duplicateRow": "Duplicate Row",
     "deleteSelectedRow": "Izbrišite odabrane retke",
     "importExcel": "Uvoz Excel",
     "importCSV": "Import CSV",
@@ -496,6 +504,9 @@
   },
   "msg": {
     "warning": {
+      "barcode": {
+        "renderError": "Barcode error - please check compatibility between input and barcode type"
+      },
       "nonEditableFields": {
         "computedFieldUnableToClear": "Warning: Computed field - unable to clear text",
         "qrFieldsCannotBeDirectlyChanged": "Warning: QR fields cannot be directly changed."
@@ -620,9 +631,15 @@
       "deleteViewConfirmation": "Are you sure you want to delete this view?",
       "deleteTableConfirmation": "Do you want to delete the table",
       "showM2mTables": "Show M2M Tables",
+      "showM2mTablesDesc": "Many-to-many relation is supported via a junction table & is hidden by default. Enable this option to list all such tables along with existing tables.",
+      "showNullInCells": "Show NULL in Cells",
+      "showNullInCellsDesc": "Display 'NULL' tag in cells holding NULL value. This helps differentiate against cells holding EMPTY string.",
+      "showNullAndEmptyInFilter": "Show NULL and EMPTY in Filter",
+      "showNullAndEmptyInFilterDesc": "Enable 'additional' filters to differentiate fields containing NULL & Empty Strings. Default support for Blank treats both NULL & Empty strings alike.",
       "deleteKanbanStackConfirmation": "Deleting this stack will also remove the select option `{stackToBeDeleted}` from the `{groupingField}`. The records will move to the uncategorized stack.",
       "computedFieldEditWarning": "Computed field: contents are read-only. Use column edit menu to reconfigure",
-      "computedFieldDeleteWarning": "Computed field: contents are read-only. Unable to clear content."
+      "computedFieldDeleteWarning": "Computed field: contents are read-only. Unable to clear content.",
+      "noMoreRecords": "No more records"
     },
     "error": {
       "searchProject": "Vaša potraga za {Search} nije pronašla rezultate",
@@ -705,6 +722,7 @@
     },
     "success": {
       "columnDuplicated": "Column duplicated successfully",
+      "rowDuplicatedWithoutSavedYet": "Row duplicated (not saved)",
       "updatedUIACL": "Updated UI ACL for tables successfully",
       "pluginUninstalled": "Plugin uninstalled successfully",
       "pluginSettingsSaved": "Plugin settings saved successfully",
