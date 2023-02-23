@@ -85,15 +85,6 @@ provide(
 
 const isForm = inject(IsFormInj, ref(false))
 
-<<<<<<< HEAD
-=======
-const isGrid = inject(IsGridInj, ref(false))
-
-const isPublic = inject(IsPublicInj, ref(false))
-
-const isLocked = inject(IsLockedInj, ref(false))
-
->>>>>>> 0.105.3
 const { currentRow } = useSmartsheetRowStoreOrThrow()
 
 const { sqlUis } = useProject()
@@ -194,32 +185,21 @@ const isNumericField = computed(() => {
       <LazyCellText v-else-if="isString(column, abstractType)" v-model="vModel" />
       <LazyCellJson v-else-if="isJSON(column)" v-model="vModel" />
       <LazyCellText v-else v-model="vModel" />
-<<<<<<< HEAD
       <div v-if="isCellDisabled && !isAttachment(column)" class="nc-locked-overlay" @click.stop.prevent @dblclick.stop.prevent />
-=======
-      <div
-        v-if="(isLocked || (isPublic && readOnly && !isForm) || isSystemColumn(column)) && !isAttachment(column)"
-        class="nc-locked-overlay"
-        @click.stop.prevent
-        @dblclick.stop.prevent
-      />
->>>>>>> 0.105.3
     </template>
   </div>
 </template>
 
-<<<<<<< HEAD
 <style lang="scss">
 .ant-skeleton-paragraph.cell-skeleton {
   padding: 0;
   margin: 0;
-=======
-<style scoped lang="scss">
+}
+
 .nc-grid-numeric-cell {
   @apply text-right;
   :deep(input) {
     @apply text-right;
   }
->>>>>>> 0.105.3
 }
 </style>

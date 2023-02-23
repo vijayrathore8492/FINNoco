@@ -40,7 +40,6 @@ import Column from '../../models/Column';
 import { MetaTable } from '../../utils/globals';
 import { BaseModelSql } from '../../db/sql-data-mapper';
 import NcPluginMgr from '../plugins/NcPluginMgr';
-import IStorageAdapter from '../../../interface/IStorageAdapter';
 import mkdirp from 'mkdirp';
 // import { BaseModelSqlv2 } from '../../sql-data-mapper/lib/sql/BaseModelSqlv2';
 
@@ -84,10 +83,6 @@ export class RestApiBuilder extends BaseApiBuilder<Noco> {
     await super.init();
     await this.pluginMgr.init();
     // return await this.loadRoutes(null);
-  }
-
-  private get storageAdapter(): IStorageAdapter {
-    return this.pluginMgr?.storageAdapter;
   }
 
   public async loadRoutes(customRoutes: any): Promise<any> {

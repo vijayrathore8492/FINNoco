@@ -1,11 +1,6 @@
 <script lang="ts" setup>
-<<<<<<< HEAD
-import type { ColumnReqType, ColumnType, TableType, ViewType } from 'nocodb-sdk'
-import { UITypes, isSystemColumn, isVirtualCol } from 'nocodb-sdk'
-=======
 import type { ColumnReqType, ColumnType, GridType, TableType, ViewType } from 'nocodb-sdk'
-import { UITypes, isVirtualCol } from 'nocodb-sdk'
->>>>>>> 0.105.3
+import { UITypes, isSystemColumn, isVirtualCol } from 'nocodb-sdk'
 import {
   ActiveViewInj,
   CellUrlDisableOverlayInj,
@@ -180,25 +175,6 @@ const getContainerScrollForElement = (
   return scroll
 }
 
-<<<<<<< HEAD
-const { isCellSelected, activeCell, handleMouseDown, handleMouseOver, handleCellClick, clearSelectedRange, copyValue } =
-  useMultiSelect(
-    meta,
-    fields,
-    data,
-    $$(editEnabled),
-    isPkAvail,
-    clearCell,
-    makeEditable,
-    scrollToCell,
-    (e: KeyboardEvent) => {
-      // ignore navigating if picker(Date, Time, DateTime, Year)
-      // or single/multi select options is open
-      const activePickerOrDropdownEl = document.querySelector(
-        '.nc-picker-datetime.active,.nc-dropdown-single-select-cell.active,.nc-dropdown-multi-select-cell.active,.nc-picker-date.active,.nc-picker-year.active,.nc-picker-time.active',
-      )
-      if (activePickerOrDropdownEl) {
-=======
 const {
   isCellSelected,
   activeCell,
@@ -239,7 +215,6 @@ const {
     const altOrOptionKey = e.altKey
     if (e.key === ' ') {
       if (isCellActive.value && !editEnabled && hasEditPermission) {
->>>>>>> 0.105.3
         e.preventDefault()
         clearSelectedRange()
         const row = data.value[activeCell.row]
@@ -262,20 +237,6 @@ const {
       }
     }
 
-<<<<<<< HEAD
-      const cmdOrCtrl = isMac() ? e.metaKey : e.ctrlKey
-      const altOrOptionKey = e.altKey
-      if (e.key === ' ') {
-        if (activeCell.row !== null && !editEnabled) {
-          e.preventDefault()
-          clearSelectedRange()
-          const row = data.value[activeCell.row]
-          expandForm(row)
-          return true
-        }
-      } else if (e.key === 'Escape') {
-        if (editEnabled) {
-=======
     if (cmdOrCtrl) {
       if (!isCellActive.value) return
 
@@ -286,7 +247,6 @@ const {
           activeCell.row = 0
           activeCell.col = activeCell.col ?? 0
           scrollToCell?.()
->>>>>>> 0.105.3
           editEnabled = false
           return true
         case 'ArrowDown':
@@ -316,58 +276,6 @@ const {
       }
     }
 
-<<<<<<< HEAD
-      if (cmdOrCtrl) {
-        switch (e.key) {
-          case 'ArrowUp':
-            e.preventDefault()
-            clearSelectedRange()
-            $e('c:shortcut', { key: 'CTRL + ArrowUp' })
-            activeCell.row = 0
-            activeCell.col = activeCell.col ?? 0
-            scrollToCell?.()
-            editEnabled = false
-            return true
-          case 'ArrowDown':
-            e.preventDefault()
-            clearSelectedRange()
-            $e('c:shortcut', { key: 'CTRL + ArrowDown' })
-            activeCell.row = data.value.length - 1
-            activeCell.col = activeCell.col ?? 0
-            scrollToCell?.()
-            editEnabled = false
-            return true
-          case 'ArrowRight':
-            e.preventDefault()
-            clearSelectedRange()
-            $e('c:shortcut', { key: 'CTRL + ArrowRight' })
-            activeCell.row = activeCell.row ?? 0
-            activeCell.col = fields.value?.length - 1
-            scrollToCell?.()
-            editEnabled = false
-            return true
-          case 'ArrowLeft':
-            e.preventDefault()
-            clearSelectedRange()
-            $e('c:shortcut', { key: 'CTRL + ArrowLeft' })
-            activeCell.row = activeCell.row ?? 0
-            activeCell.col = 0
-            scrollToCell?.()
-            editEnabled = false
-            return true
-        }
-      }
-
-      if (altOrOptionKey) {
-        switch (e.keyCode) {
-          case 82: {
-            // ALT + R
-            if (isAddingEmptyRowAllowed) {
-              $e('c:shortcut', { key: 'ALT + R' })
-              addEmptyRow()
-            }
-            break
-=======
     if (altOrOptionKey) {
       switch (e.keyCode) {
         case 82: {
@@ -383,7 +291,6 @@ const {
                 behavior: 'smooth',
               })
             })
->>>>>>> 0.105.3
           }
           break
         }
@@ -396,18 +303,11 @@ const {
           break
         }
       }
-<<<<<<< HEAD
-    },
-    async (ctx: { row: number; col?: number; updatedColumnTitle?: string }) => {
-      const rowObj = data.value[ctx.row]
-      const columnObj = ctx.col !== undefined ? fields.value[ctx.col] : null
-=======
     }
   },
   async (ctx: { row: number; col?: number; updatedColumnTitle?: string }) => {
     const rowObj = data.value[ctx.row]
     const columnObj = ctx.col !== undefined ? fields.value[ctx.col] : null
->>>>>>> 0.105.3
 
     if (!ctx.updatedColumnTitle && isVirtualCol(columnObj)) {
       return
@@ -623,20 +523,10 @@ useEventListener(document, 'keyup', async (e: KeyboardEvent) => {
   }
 })
 
-/** On clicking outside of table reset active cell  */
-const smartTable = ref(null)
-<<<<<<< HEAD
-
-onClickOutside(smartTable, (e) => {
-  if (contextMenu.value) return
-
-=======
-
 onClickOutside(tbodyEl, (e) => {
   // do nothing if context menu was open
   if (contextMenu.value) return
 
->>>>>>> 0.105.3
   if (activeCell.row === null || activeCell.col === null) return
 
   const activeCol = fields.value[activeCell.col]
@@ -1000,10 +890,7 @@ const closeAddColumnDropdown = () => {
                         "
                         :row-index="rowIndex"
                         :active="activeCell.col === colIndex && activeCell.row === rowIndex"
-<<<<<<< HEAD
-=======
                         :read-only="readOnly"
->>>>>>> 0.105.3
                         @update:edit-enabled="editEnabled = $event"
                         @save="updateOrSaveRow(row, columnObj.title, state)"
                         @navigate="onNavigate"

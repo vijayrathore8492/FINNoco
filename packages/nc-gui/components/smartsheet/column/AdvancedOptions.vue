@@ -1,13 +1,8 @@
 <script setup lang="ts">
-<<<<<<< HEAD
 import { AccessControlType, UITypes } from 'nocodb-sdk'
 import type { ProjectRole } from '#imports'
-import { computed, useColumnCreateStoreOrThrow, useProject, useVModel } from '#imports'
-=======
-import { UITypes } from 'nocodb-sdk'
 import { computed, useColumnCreateStoreOrThrow, useVModel } from '#imports'
 
->>>>>>> 0.105.3
 const props = defineProps<{
   value: any
   advancedDbOptions: boolean

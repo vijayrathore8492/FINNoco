@@ -1,14 +1,8 @@
 <script lang="ts" setup>
-<<<<<<< HEAD
 import { navigateTo, useEventListener, useRouter, useSharedView } from '#imports'
 import NocoHeaderLogo from '~/components/general/NocoHeaderLogo'
-const { isLoading } = useGlobal()
-=======
-import { navigateTo, useEventListener, useRouter } from '#imports'
-
 const { isLoading, appInfo } = useGlobal()
 
->>>>>>> 0.105.3
 const { sharedView } = useSharedView()
 
 const router = useRouter()
@@ -50,16 +44,7 @@ export default {
     <a-layout class="!flex-col bg-white">
       <a-layout-header class="flex !bg-primary items-center text-white pl-3 pr-4 shadow-lg">
         <div class="transition-all duration-200 p-2 cursor-pointer transform hover:scale-105" @click="navigateTo('/')">
-<<<<<<< HEAD
           <NocoHeaderLogo />
-=======
-          <a-tooltip placement="bottom">
-            <template #title>
-              {{ appInfo.version }}
-            </template>
-            <img width="35" alt="NocoDB" src="~/assets/img/icons/512x512-trans.png" />
-          </a-tooltip>
->>>>>>> 0.105.3
         </div>
 
         <div>

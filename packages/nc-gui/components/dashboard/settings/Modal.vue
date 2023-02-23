@@ -47,122 +47,6 @@ const { t } = useI18n()
 
 const { $e } = useNuxtApp()
 
-<<<<<<< HEAD
-const tabsInfo = $computed<TabGroup>(() => ({
-  ...(isUIAllowed('teamAndAuth')
-    ? {
-        teamAndAuth: {
-          title: t('title.teamAndAuth'),
-          icon: TeamFillIcon,
-          subTabs: {
-            ...(isUIAllowed('userMgmtTab')
-              ? {
-                  usersManagement: {
-                    // Users Management
-                    title: t('title.userMgmt'),
-                    body: resolveComponent('TabsAuthUserManagement'),
-                  },
-                }
-              : {}),
-            ...(isUIAllowed('apiTokenTab')
-              ? {
-                  apiTokenManagement: {
-                    // API Tokens Management
-                    title: t('title.apiTokenMgmt'),
-                    body: resolveComponent('TabsAuthApiTokenManagement'),
-                  },
-                }
-              : {}),
-          },
-          onClick: () => {
-            $e('c:settings:team-auth')
-          },
-        },
-        ...(isUIAllowed('appStore')
-          ? {
-              appStore: {
-                // App Store
-                title: t('title.appStore'),
-                icon: StoreFrontOutline,
-                subTabs: {
-                  new: {
-                    title: 'Apps',
-                    body: resolveComponent('DashboardSettingsAppStore'),
-                  },
-                },
-                onClick: () => {
-                  $e('c:settings:appstore')
-                },
-              },
-            }
-          : {}),
-      }
-    : {}),
-  ...(isUIAllowed('projMetaData')
-    ? {
-        projMetaData: {
-          // Project Metadata
-          title: t('title.projMeta'),
-          icon: MultipleTableIcon,
-          subTabs: {
-            metaData: {
-              // Metadata
-              title: t('title.metadata'),
-              body: resolveComponent('DashboardSettingsMetadata'),
-            },
-            acl: {
-              // UI Access Control
-              title: t('title.uiACL'),
-              body: resolveComponent('DashboardSettingsUIAcl'),
-              onClick: () => {
-                $e('c:table:ui-acl')
-              },
-            },
-            erd: {
-              title: t('title.erdView'),
-              body: resolveComponent('DashboardSettingsErd'),
-              onClick: () => {
-                $e('c:settings:erd')
-              },
-            },
-            misc: {
-              title: t('general.misc'),
-              body: resolveComponent('DashboardSettingsMisc'),
-            },
-          },
-          onClick: () => {
-            $e('c:settings:proj-metadata')
-          },
-        },
-      }
-    : {}),
-  ...(isUIAllowed('audit')
-    ? {
-        audit: {
-          // Audit
-          title: t('title.audit'),
-          icon: NotebookOutline,
-          subTabs: {
-            audit: {
-              // Audit
-              title: t('title.audit'),
-              body: resolveComponent('DashboardSettingsAuditTab'),
-            },
-          },
-          onClick: () => {
-            $e('c:settings:audit')
-          },
-        },
-      }
-    : {}),
-}))
-
-const firstKeyOfObject = (obj: object) => Object.keys(obj)[0]
-
-// Array of keys of tabs which are selected. In our case will be only one.
-let selectedTabKeys = $ref<string[]>([firstKeyOfObject(tabsInfo)])
-const selectedTab = $computed(() => tabsInfo[selectedTabKeys?.[0]])
-=======
 const dataSourcesReload = ref(false)
 
 const dataSourcesAwakened = ref(false)
@@ -252,26 +136,10 @@ const selectedTabKeys = $computed<string[]>({
 })
 
 const selectedTab = $computed(() => tabsInfo[selectedTabKeys[0]])
->>>>>>> 0.105.3
 
 let selectedSubTabKeys = $ref<string[]>([firstKeyOfObject(selectedTab?.subTabs ?? {})])
 const selectedSubTab = $computed(() => selectedTab?.subTabs[selectedSubTabKeys?.[0]])
 
-<<<<<<< HEAD
-watch([() => tabsInfo, () => selectedTabKeys?.[0]], ([tabsInfo, newTabKey]) => {
-  if (!newTabKey || !tabsInfo?.[newTabKey]) {
-    return
-  }
-  selectedSubTabKeys = [firstKeyOfObject(tabsInfo[newTabKey]?.subTabs ?? {})]
-})
-
-watch([() => tabsInfo, () => props.openKey], ([tabsInfo, nextOpenKey]) => {
-  if (!tabsInfo) {
-    return
-  }
-  selectedTabKeys = [Object.keys(tabsInfo).find((key) => key === nextOpenKey) || firstKeyOfObject(tabsInfo)]
-})
-=======
 const handleAwaken = (val: boolean) => {
   dataSourcesAwakened.value = val
 }
@@ -282,7 +150,6 @@ watch(
     selectedSubTabKeys = [firstKeyOfObject(tabsInfo[newTabKey].subTabs)]
   },
 )
->>>>>>> 0.105.3
 </script>
 
 <template>

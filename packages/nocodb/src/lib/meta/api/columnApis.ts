@@ -650,7 +650,10 @@ async function updateRollupOrLookup(colBody: any, column: Column<any>) {
   }
 }
 
-export async function columnUpdate(req: Request, res: Response<TableType>) {
+export async function columnUpdate(
+  req: Request & { session: any },
+  res: Response<TableType>
+) {
   const column = await Column.get({ colId: req.params.columnId });
 
   const table = await Model.getWithInfo({

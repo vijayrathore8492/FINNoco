@@ -66,13 +66,10 @@ export function useMultiSelect(
 
   const columnLength = $computed(() => unref(fields)?.length)
 
-<<<<<<< HEAD
-=======
   const isCellActive = computed(
     () => !(activeCell.row === null || activeCell.col === null || isNaN(activeCell.row) || isNaN(activeCell.col)),
   )
 
->>>>>>> 0.105.3
   function makeActive(row: number, col: number) {
     if (activeCell.row === row && activeCell.col === col) {
       return
@@ -183,11 +180,7 @@ export function useMultiSelect(
       return true
     }
 
-<<<<<<< HEAD
-    if (activeCell.row === null || activeCell.col === null) {
-=======
     if (!isCellActive.value) {
->>>>>>> 0.105.3
       return
     }
 
@@ -283,12 +276,8 @@ export function useMultiSelect(
               // copy - ctrl/cmd +c
               case 67:
                 // set clipboard context only if single cell selected
-<<<<<<< HEAD
-                if (selectedRange.isSingleCell() && rowObj.row[columnObj.title!]) {
-=======
                 // or if selected range is empty
-                if (selectedRange.isSingleCell() || (selectedRange.isEmpty() && rowObj && columnObj)) {
->>>>>>> 0.105.3
+                if (selectedRange.isSingleCell() && rowObj.row[columnObj.title!] || (selectedRange.isEmpty() && rowObj && columnObj)) {
                   clipboardContext = {
                     value: rowObj.row[columnObj.title!],
                     uidt: columnObj.uidt as UITypes,
@@ -385,14 +374,6 @@ export function useMultiSelect(
     }
   }
 
-<<<<<<< HEAD
-  const clearSelectedRange = selectedRange.clear.bind(selectedRange)
-
-  useEventListener(document, 'keydown', handleKeyDown)
-  useEventListener(document, 'mouseup', handleMouseUp)
-
-  return {
-=======
   const resetSelectedRange = () => selectedRange.clear()
 
   const clearSelectedRange = selectedRange.clear.bind(selectedRange)
@@ -402,7 +383,6 @@ export function useMultiSelect(
 
   return {
     isCellActive,
->>>>>>> 0.105.3
     handleMouseDown,
     handleMouseOver,
     clearSelectedRange,
@@ -410,10 +390,7 @@ export function useMultiSelect(
     isCellSelected,
     activeCell,
     handleCellClick,
-<<<<<<< HEAD
-=======
     tbodyEl,
     resetSelectedRange,
->>>>>>> 0.105.3
   }
 }

@@ -242,16 +242,7 @@ defineExpose({
               :columns="columns"
               :disabled="filter.readOnly"
               @click.stop
-<<<<<<< HEAD
-              @change="
-                () => {
-                  filter.value = null
-                  saveOrUpdate(filter, i)
-                }
-              "
-=======
               @change="selectFilterField(filter, i)"
->>>>>>> 0.105.3
             />
             <a-select
               v-model:value="filter.comparison_op"
@@ -292,24 +283,11 @@ defineExpose({
 
             <LazySmartsheetToolbarFilterInput
               v-else
-<<<<<<< HEAD
-              class="nc-filter-value-select"
-              :column="getColumn(filter)"
-              :filter="filter"
-              @click.stop
-              @updateFilterValue="
-                (value) => {
-                  filter.value = value
-                  saveOrUpdate(filter, i)
-                }
-              "
-=======
               class="nc-filter-value-select min-w-[120px]"
               :column="getColumn(filter)"
               :filter="filter"
               @update-filter-value="(value) => updateFilterValue(value, filter, i)"
               @click.stop
->>>>>>> 0.105.3
             />
           </template>
         </template>

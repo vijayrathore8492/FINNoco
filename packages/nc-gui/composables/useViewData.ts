@@ -285,18 +285,6 @@ export function useViewData(
         //   query: { ignoreWebhook: !saved }
         // }
       )
-<<<<<<< HEAD
-=======
-      // audit
-      $api.utils.auditRowUpdate(encodeURIComponent(id), {
-        fk_model_id: metaValue?.id as string,
-        column_name: property,
-        row_id: id,
-        value: getHTMLEncodedText(toUpdate.row[property]),
-        prev_value: getHTMLEncodedText(toUpdate.oldRow[property]),
-      })
-
->>>>>>> 0.105.3
       /** update row data(to sync formula and other related columns)
        * update only formula, rollup and auto updated datetime columns data to avoid overwriting any changes made by user
        */

@@ -21,13 +21,7 @@ const vModel = useVModel(props, 'value', emit)
 
 const { setAdditionalValidations, validateInfos, isPg, isMysql } = useColumnCreateStoreOrThrow()
 
-<<<<<<< HEAD
-const { setAdditionalValidations, validateInfos } = useColumnCreateStoreOrThrow()
-
-let options = $ref<Option[]>([])
-=======
 let options = $ref<(Option & { status?: 'remove' })[]>([])
->>>>>>> 0.105.3
 let renderedOptions = $ref<(Option & { status?: 'remove' })[]>([])
 let savedDefaultOption = $ref<Option | null>(null)
 let savedCdf = $ref<string | null>(null)

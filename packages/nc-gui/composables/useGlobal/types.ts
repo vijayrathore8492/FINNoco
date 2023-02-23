@@ -21,15 +21,12 @@ export interface AppInfo {
   auditEnabled: boolean
   type: string
   version: string
-<<<<<<< HEAD
   useFinnTheme: boolean
   sentryDsnFrontend: string
   platform: string
-=======
   ee?: boolean
   ncAttachmentFieldSize: number
   ncMaxAttachmentsAllowed: number
->>>>>>> 0.105.3
 }
 
 export interface StoredState {

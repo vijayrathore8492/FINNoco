@@ -165,7 +165,7 @@ class BaseModelSqlv2 {
       qb.orderBy(this.model.primaryKey.column_name);
     }
 
-    const data = await this.extractRawQueryAndExec(qb.first());
+    const data = await this.execAndParse(qb.first());
 
     if (data) {
       const proto = await this.getProto();
@@ -372,7 +372,7 @@ class BaseModelSqlv2 {
     qb.groupBy(args.column_name);
     if (sorts) await sortV2(sorts, qb, this.dbDriver);
     applyPaginate(qb, rest);
-    return this.convertAttachmentType(await this.extractRawQueryAndExec(qb));
+    return this.convertAttachmentType(await this.execAndParse(qb));
   }
 
   async multipleHmList({ colId, ids }, args: { limit?; offset? } = {}) {
@@ -969,7 +969,7 @@ class BaseModelSqlv2 {
     applyPaginate(qb, rest);
 
     const proto = await childModel.getProto();
-    let data = await this.extractRawQueryAndExec(qb);
+    let data = await this.execAndParse(qb);
     data = this.convertAttachmentType(data);
     return data.map((c) => {
       c.__proto__ = proto;

@@ -1,24 +1,5 @@
 <script setup lang="ts">
 import type { ColumnType } from 'nocodb-sdk'
-<<<<<<< HEAD
-import { useColumn } from '~/composables/useColumn'
-import { ColumnInj, EditModeInj, ReadonlyInj, computed, provide, toRef } from '#imports'
-import type { Filter } from '~/lib'
-import SingleSelect from '~/components/cell/SingleSelect'
-import MultiSelect from '~/components/cell/MultiSelect'
-import DatePicker from '~/components/cell/DatePicker'
-import YearPicker from '~/components/cell/YearPicker'
-import Text from '~/components/cell/Text'
-import DateTimePicker from '~/components/cell/DateTimePicker'
-import TimePicker from '~/components/cell/TimePicker'
-import Rating from '~/components/cell/Rating'
-import Duration from '~/components/cell/Duration'
-import Percent from '~/components/cell/Percent'
-import Currency from '~/components/cell/Currency'
-import Decimal from '~/components/cell/Decimal'
-import Integer from '~/components/cell/Integer'
-import Float from '~/components/cell/Float'
-=======
 import {
   ColumnInj,
   EditModeInj,
@@ -59,7 +40,6 @@ import Decimal from '~/components/cell/Decimal.vue'
 import Integer from '~/components/cell/Integer.vue'
 import Float from '~/components/cell/Float.vue'
 import Text from '~/components/cell/Text.vue'
->>>>>>> 0.105.3
 
 interface Props {
   column: ColumnType
@@ -71,19 +51,6 @@ interface Emits {
 }
 
 const props = defineProps<Props>()
-<<<<<<< HEAD
-const emit = defineEmits<Emits>()
-
-const column = toRef(props, 'column')
-const editEnabled = ref(true)
-
-provide(ColumnInj, column)
-provide(EditModeInj, readonly(editEnabled))
-provide(ReadonlyInj, ref(false))
-
-const types = useColumn(column)
-const { isInt, isFloat, isDecimal, isPercent, isBoolean, isDate, isDateTime, isTime, isYear } = types
-=======
 
 const emit = defineEmits<Emits>()
 
@@ -129,7 +96,6 @@ const checkType = (filterType: FilterType) => {
 
   return checkTypeFunction(column.value, abstractType)
 }
->>>>>>> 0.105.3
 
 const filterInput = computed({
   get: () => {
@@ -146,31 +112,6 @@ const booleanOptions = [
   { value: null, label: 'unset' },
 ]
 
-<<<<<<< HEAD
-type FilterType = keyof typeof types
-
-const componentMap: Partial<Record<FilterType, any>> = {
-  isSingleSelect: SingleSelect,
-  isMultiSelect: MultiSelect,
-  isDate: DatePicker,
-  isYear: YearPicker,
-  isDateTime: DateTimePicker,
-  isTime: TimePicker,
-  isRating: Rating,
-  isDuration: Duration,
-  isPercent: Percent,
-  isCurrency: Currency,
-  isDecimal: Decimal,
-  isInt: Integer,
-  isFloat: Float,
-}
-
-const filterType = $computed(() => Object.keys(componentMap).find((key) => types[key as FilterType]?.value))
-const isNumeric = $computed(() => isPercent.value || isInt.value || isDecimal.value || isFloat.value)
-
-const hasExtraPadding = $computed(() => {
-  return column.value && (isInt.value || isDate.value || isDateTime.value || isTime.value || isYear.value)
-=======
 const componentMap: Partial<Record<FilterType, any>> = $computed(() => {
   return {
     // use MultiSelect for SingleSelect columns for anyof / nanyof filters
@@ -224,17 +165,10 @@ const hasExtraPadding = $computed(() => {
       isTime(column.value, abstractType) ||
       isYear(column.value, abstractType))
   )
->>>>>>> 0.105.3
 })
 </script>
 
 <template>
-<<<<<<< HEAD
-  <a-select v-if="isBoolean" v-model:value="filterInput" :disabled="filter.readOnly" :options="booleanOptions"></a-select>
-  <div
-    v-else
-    class="bg-white border-1 flex min-w-120px max-w-170px min-h-32px h-full items-center"
-=======
   <a-select
     v-if="column && isBoolean(column, abstractType)"
     v-model:value="filterInput"
@@ -244,18 +178,10 @@ const hasExtraPadding = $computed(() => {
   <div
     v-else
     class="bg-white border-1 flex min-w-120px max-w-170px min-h-32px h-full"
->>>>>>> 0.105.3
     :class="{ 'px-2': hasExtraPadding }"
     @mouseup.stop
   >
     <component
-<<<<<<< HEAD
-      :is="componentMap[filterType] ?? Text"
-      v-model="filterInput"
-      :column="column"
-      :disabled="filter.readOnly"
-      :class="{ 'h-32px': isNumeric }"
-=======
       :is="filterType ? componentMap[filterType] : Text"
       v-model="filterInput"
       :disabled="filter.readOnly"
@@ -263,7 +189,6 @@ const hasExtraPadding = $computed(() => {
       :column="column"
       class="flex"
       v-bind="componentProps"
->>>>>>> 0.105.3
     />
   </div>
 </template>

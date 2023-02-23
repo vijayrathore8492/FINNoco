@@ -83,13 +83,9 @@ export function useGlobalState(storageKey = 'nocodb-gui-v2'): State {
   const config = useRuntimeConfig()
 
   const appInfo = ref<AppInfo>({
-<<<<<<< HEAD
     canCreateProjectWithoutExternalDB: false,
     noSignUp: false,
-    ncSiteUrl: BASE_FALLBACK_URL,
-=======
     ncSiteUrl: config.public.ncBackendUrl || BASE_FALLBACK_URL,
->>>>>>> 0.105.3
     authType: 'jwt',
     connectToExternalDB: false,
     defaultLimit: 0,
@@ -103,14 +99,11 @@ export function useGlobalState(storageKey = 'nocodb-gui-v2'): State {
     auditEnabled: true,
     type: 'nocodb',
     version: '0.0.0',
-<<<<<<< HEAD
     useFinnTheme: false,
     sentryDsnFrontend: '',
     platform: '',
-=======
     ncAttachmentFieldSize: 20,
     ncMaxAttachmentsAllowed: 10,
->>>>>>> 0.105.3
   })
 
   /** reactive token payload */

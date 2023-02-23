@@ -56,12 +56,7 @@ const isUploadAllowed = async (req: Request, _res: Response, next: any) => {
 
 export async function upload(req: Request, res: Response) {
   const { column, filePath } = await extractInfoFromRequest(req);
-  const attachments = await uploadAttachment(
-    filePath,
-    column,
-    req['files'],
-    req['ncSiteUrl']
-  );
+  const attachments = await uploadAttachment(filePath, column, req['files']);
 
   Tele.emit('evt', { evt_type: 'image:uploaded' });
 
@@ -70,12 +65,7 @@ export async function upload(req: Request, res: Response) {
 
 export async function uploadWithUpdate(req, res: Response) {
   const { model, base, column, filePath } = await extractInfoFromRequest(req);
-  const attachments = await uploadAttachment(
-    filePath,
-    column,
-    req['files'],
-    req['ncSiteUrl']
-  );
+  const attachments = await uploadAttachment(filePath, column, req['files']);
 
   Tele.emit('evt', { evt_type: 'image:uploaded' });
 
@@ -173,7 +163,7 @@ export async function fileRead(req, res) {
   }
 }
 
-async function uploadAttachment(filePath, column, files, ncSiteUrl) {
+async function uploadAttachment(filePath, column, files) {
   if (!column) {
     NcError.badRequest(`Attachment column is invalid.`);
   }
@@ -184,7 +174,7 @@ async function uploadAttachment(filePath, column, files, ncSiteUrl) {
     files?.map(async (file) => {
       const fileName = `${nanoid(6)}${path.extname(file.originalname)}`;
       const relativePath = slash(path.join(destPath, fileName));
-      let url = await storageAdapter.fileCreate(
+      const url = await storageAdapter.fileCreate(
         relativePath,
         file,
         column.public

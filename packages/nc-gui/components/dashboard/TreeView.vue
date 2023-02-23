@@ -75,13 +75,7 @@ const filteredTables = $computed(() =>
   ),
 )
 
-<<<<<<< HEAD
-const { appInfo } = useGlobal()
-
-let sortable: Sortable
-=======
 const sortables: Record<string, Sortable> = {}
->>>>>>> 0.105.3
 
 // todo: replace with vuedraggable
 const initSortable = (el: Element) => {

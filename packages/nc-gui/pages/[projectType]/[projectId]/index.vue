@@ -268,16 +268,7 @@ useEventListener(document, 'keydown', async (e: KeyboardEvent) => {
             :class="appInfo.useFinnTheme ? 'w-[90px] min-w-[90px]' : 'w-[40px] min-w-[40px]'"
             @click="navigateTo('/')"
           >
-<<<<<<< HEAD
             <NocoHeaderLogo />
-=======
-            <a-tooltip placement="bottom">
-              <template #title>
-                {{ currentVersion }}
-              </template>
-              <img width="25" class="-mr-1" alt="NocoDB" src="~/assets/img/icons/512x512.png" />
-            </a-tooltip>
->>>>>>> 0.105.3
           </div>
 
           <a

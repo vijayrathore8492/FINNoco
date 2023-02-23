@@ -176,22 +176,10 @@ export class ToolbarFilterPage extends BasePage {
         .click();
     }
 
-<<<<<<< HEAD
-    const fillFilter = this.rootPage.locator('.nc-filter-value-select > input').last().fill(value);
-    await this.waitForResponse({
-      uiAction: fillFilter,
-      httpMethodsToMatch: ['GET'],
-      requestUrlPathToMatch: isLocallySaved ? `/api/v1/db/public/` : `/api/v1/db/data/noco/`,
-    });
-    await this.toolbar.parent.dashboard.waitForLoaderToDisappear();
-    await this.toolbar.parent.waitLoading();
-  }
-=======
     await this.rootPage.locator('.nc-filter-operation-select').click();
     const opList = await this.rootPage
       .locator('.nc-dropdown-filter-comp-op')
       .locator(`.ant-select-item > .ant-select-item-option-content`);
->>>>>>> 0.105.3
 
     // extract text from each element & put them in an array
     const opListText = [];

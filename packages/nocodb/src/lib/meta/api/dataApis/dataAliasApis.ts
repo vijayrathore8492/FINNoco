@@ -10,6 +10,7 @@ import { getViewAndModelFromRequestByAliasOrId } from './helpers';
 import apiMetrics from '../../helpers/apiMetrics';
 import getAst from '../../../db/sql-data-mapper/lib/sql/helpers/getAst';
 import { parseHrtimeToSeconds } from '../helpers';
+import { NcError } from '../../helpers/catchError';
 
 // todo: Handle the error case where view doesnt belong to model
 async function dataList(req: Request, res: Response) {
@@ -159,9 +160,9 @@ async function getDataGroupBy(model, view: View, req) {
   const data = await baseModel.groupBy({ ...req.query });
   const count = await baseModel.count(listArgs);
 
-  return new PagedResponseImpl(data, {
+  return new PagedResponseImpl(data as any[], {
     ...req.query,
-    count
+    count,
   });
 }
 
