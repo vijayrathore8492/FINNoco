@@ -2999,18 +2999,18 @@ class BaseModelSqlv2 {
   }
 
   private _convertAttachmentType(
-    attachmentColumns: Record<string, any>[],
+    _attachmentColumns: Record<string, any>[],
     d: Record<string, any>
   ) {
-    try {
-      if (d) {
-        attachmentColumns.forEach((col) => {
-          if (d[col.title] && typeof d[col.title] === 'string') {
-            d[col.title] = JSON.parse(d[col.title]);
-          }
-        });
-      }
-    } catch {}
+    // try {
+    //   if (d) {
+    //     attachmentColumns.forEach((col) => {
+    //       if (d[col.title] && typeof d[col.title] === 'string') {
+    //         d[col.title] = JSON.parse(d[col.title]);
+    //       }
+    //     });
+    //   }
+    // } catch {}
     return d;
   }
 
