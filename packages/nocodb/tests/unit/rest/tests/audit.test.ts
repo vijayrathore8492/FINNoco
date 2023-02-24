@@ -94,7 +94,6 @@ function auditTests() {
           {
             user: "test@example.com",
             ip: "::ffff:127.0.0.1",
-            base_id: null,
             project_id: project.id,
             fk_model_id: null,
             row_id: null,
@@ -107,7 +106,6 @@ function auditTests() {
           {
             user: "test@example.com",
             ip: "::ffff:127.0.0.1",
-            base_id: null,
             project_id: project.id,
             fk_model_id: table.id,
             row_id: String(row.Id),

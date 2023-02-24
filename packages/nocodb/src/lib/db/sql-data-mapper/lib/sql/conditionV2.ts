@@ -11,6 +11,10 @@ import FormulaColumn from '../../../../models/FormulaColumn';
 import { RelationTypes, UITypes, isNumericCol } from 'nocodb-sdk';
 import { sanitize } from './helpers/sanitize';
 
+function isNumeric(n) {
+  return !isNaN(parseFloat(n)) && isFinite(n);
+}
+
 export default async function conditionV2(
   conditionObj: Filter | Filter[],
   qb: Knex.QueryBuilder,
@@ -281,7 +285,11 @@ const parseConditionV2 = async (
           return;
         }
 
-        if (isNumericCol(column.uidt) && typeof val === 'string') {
+        if (
+          isNumericCol(column.uidt) &&
+          typeof val === 'string' &&
+          isNumeric(val)
+        ) {
           // convert to number
           val = +val;
         }

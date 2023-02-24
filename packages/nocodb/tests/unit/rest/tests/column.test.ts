@@ -50,7 +50,7 @@ function columnTests() {
         validate: null,
         virtual: null,
         deleted: null,
-        system: null,
+        system: 0,
         order: null,
         meta: null,
       }
@@ -95,7 +95,7 @@ function columnTests() {
       validate: null,
       virtual: null,
       deleted: null,
-      system: null,
+      system: 0,
       order: null,
       meta: null,
     }

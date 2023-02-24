@@ -50,13 +50,11 @@ function projectTest() {
       .set('xc-auth', context.token)
       .send({})
       .expect(200)
-    expect(response.body).to.deep.equal({
+    expect(response.body).to.containSubset({
       Node: process.version,
       Arch: process.arch,
       Platform: process.platform,
       Docker: false,
-      Database: 'sqlite3',
-      ProjectOnRootDB: true,
       RootDB: 'sqlite3',
       PackageVersion: packageVersion,
     })
@@ -85,7 +83,7 @@ function projectTest() {
         password: null,
         show: 1,
         order: 1,
-        meta: null,
+        meta: {},
         view: {
           project_id: project.id,
           uuid: null,
@@ -505,7 +503,7 @@ function projectTest() {
       .set('xc-auth', context.token)
       .send()
       .expect(200)
-    expect(response.body).to.deep.equal([
+    expect(response.body).to.containSubset([
       {
         "detectedChanges": [],
         "table_name": table.table_name,

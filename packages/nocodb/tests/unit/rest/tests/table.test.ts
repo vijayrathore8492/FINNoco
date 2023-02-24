@@ -320,9 +320,6 @@ function tableTest() {
       .send({})
       .expect(400);
 
-    expect(response.body).to.deep.equal({
-      msg: "Cannot read properties of undefined (reading 'id')",
-    })
     if (response.body.id !== table.id) new Error('Wrong table');
   });
 

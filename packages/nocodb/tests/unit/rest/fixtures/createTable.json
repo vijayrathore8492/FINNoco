@@ -1,7 +1,6 @@
 {
   "title": "new_title_2",
   "type": "table",
-  "meta": null,
   "schema": null,
   "enabled": 1,
   "mm": 0,
@@ -36,9 +35,8 @@
       "validate": null,
       "virtual": null,
       "deleted": null,
-      "system": null,
+      "system": 0,
       "order": 1,
-      "meta": null,
       "public": 0
     },
     {
@@ -67,9 +65,8 @@
       "validate": null,
       "virtual": null,
       "deleted": null,
-      "system": null,
+      "system": 0,
       "order": 2,
-      "meta": null,
       "public": 0
     },
     {
@@ -98,9 +95,8 @@
       "validate": null,
       "virtual": null,
       "deleted": null,
-      "system": null,
+      "system": 0,
       "order": 3,
-      "meta": null,
       "public": 0
     },
     {
@@ -129,9 +125,8 @@
       "validate": null,
       "virtual": null,
       "deleted": null,
-      "system": null,
+      "system": 0,
       "order": 4,
-      "meta": null,
       "public": 0
     }
   ],
@@ -146,7 +141,6 @@
       "password": null,
       "show": 1,
       "order": 1,
-      "meta": null,
       "view": {
         "uuid": null,
         "meta": null

@@ -40,7 +40,7 @@ function GridViewTests() {
         uuid: null,
         password: null,
         show: 1,
-        meta: null,
+        meta: {},
       });
     });
   })
@@ -61,7 +61,7 @@ function GridViewTests() {
           label: null,
           help: null,
           width: "200px",
-          show: 0,
+          show: 1,
           order: 1,
         },
         {
@@ -71,7 +71,7 @@ function GridViewTests() {
           label: null,
           help: null,
           width: "200px",
-          show: 1,
+          show: 0,
           order: 2,
         },
         {
