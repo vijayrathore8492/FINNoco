@@ -243,7 +243,7 @@ export function useViewFilters(
   }
 
   const saveOrUpdate = async (filter: Filter, i: number, force = false) => {
-    if (!view.value || filter.fk_column_id == null) return
+    if (!view.value) return
 
     try {
       if (nestedMode.value) {
