@@ -17,6 +17,7 @@ import {
   useApi,
   useBreakpoints,
   useCopy,
+  useGlobal,
   useNuxtApp,
   useSidebar,
   useUIPermission,
@@ -41,6 +42,8 @@ const { md } = useBreakpoints(breakpointsTailwind)
 const filterQuery = ref('')
 
 const projects = ref<ProjectType[]>()
+
+const { appInfo } = useGlobal()
 
 const loadProjects = async () => {
   const response = await api.project.list({})
@@ -123,10 +126,6 @@ const getProjectPrimary = (project: ProjectType) => {
   return meta.theme?.primaryColor || themeV2Colors['royal-blue'].DEFAULT
 }
 
-const hasAccessToProjectActions = (project: ProjectType) => {
-  return project.roles && (project.roles.match('owner') || project.roles.match('creator'))
-}
-
 const customRow = (record: ProjectType) => ({
   onClick: async () => {
     await navigateTo(`/nc/${record.id}`)
@@ -192,15 +191,48 @@ const copyProjectMeta = async () => {
 
       <div class="flex-1" />
 
-      <button
+      <a-dropdown
         v-if="isUIAllowed('projectCreate', true) && (canCreateProjectWithoutExternalDB() || canConnectToExternalDB())"
-        class="nc-new-project-menu mt-4 md:mt-0"
-        @click="navigateTo('/create')"
+        :trigger="['click']"
+        overlay-class-name="nc-dropdown-create-project"
       >
-        <span class="flex items-center w-full">
-          {{ $t('title.newProj') }}
-        </span>
-      </button>
+        <button class="nc-new-project-menu mt-4 md:mt-0">
+          <span class="flex items-center w-full">
+            {{ $t('title.newProj') }}
+            <MdiMenuDown class="menu-icon" />
+          </span>
+        </button>
+
+        <template #overlay>
+          <a-menu class="!py-0 rounded">
+            <a-menu-item>
+              <div
+                v-if="canCreateProjectWithoutExternalDB()"
+                v-e="['c:project:create:xcdb']"
+                class="nc-project-menu-item group nc-create-xc-db-project"
+                @click="navigateTo('/create')"
+              >
+                <MdiPlusOutline class="group-hover:text-accent" />
+
+                <div>{{ $t('activity.createProject') }}</div>
+              </div>
+            </a-menu-item>
+
+            <a-menu-item v-if="appInfo.connectToExternalDB">
+              <div
+                v-if="canConnectToExternalDB()"
+                v-e="['c:project:create:extdb']"
+                class="nc-project-menu-item group nc-create-external-db-project"
+                @click="navigateTo('/create-external')"
+              >
+                <MdiDatabaseOutline class="group-hover:text-accent" />
+
+                <div v-html="$t('activity.createProjectExtended.extDB')" />
+              </div>
+            </a-menu-item>
+          </a-menu>
+        </template>
+      </a-dropdown>
     </div>
 
     <!--
