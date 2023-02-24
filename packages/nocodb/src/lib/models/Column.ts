@@ -159,6 +159,12 @@ export default class Column<T = any> implements ColumnType {
     if (insertObj.meta && typeof insertObj.meta === 'object') {
       insertObj.meta = JSON.stringify(insertObj.meta);
     }
+    if (
+      insertObj.visibility_rules &&
+      typeof insertObj.visibility_rules === 'object'
+    ) {
+      insertObj.visibility_rules = JSON.stringify(insertObj.visibility_rules);
+    }
     if (column.validate) {
       if (typeof column.validate === 'string')
         insertObj.validate = column.validate;
@@ -1034,7 +1040,7 @@ export default class Column<T = any> implements ColumnType {
       'system',
       'validate',
       'meta',
-      'visibility_rules'
+      'visibility_rules',
     ]);
 
     if (column.validate) {
@@ -1088,6 +1094,11 @@ export default class Column<T = any> implements ColumnType {
           updateObj.meta && typeof updateObj.meta === 'object'
             ? JSON.stringify(updateObj.meta)
             : updateObj.meta,
+        visibility_rules:
+          updateObj.visibility_rules &&
+          typeof updateObj.visibility_rules === 'object'
+            ? JSON.stringify(updateObj.visibility_rules)
+            : updateObj.visibility_rules,
       },
       colId
     );
