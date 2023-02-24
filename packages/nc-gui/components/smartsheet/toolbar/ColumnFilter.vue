@@ -107,10 +107,6 @@ const types = computed(() => {
   }, {})
 })
 
-const getColumn = (filter: Filter) => {
-  return columns.value?.find((col) => col.id === filter.fk_column_id)
-}
-
 watch(
   () => activeView.value?.id,
   (n: string, o: string) => {
