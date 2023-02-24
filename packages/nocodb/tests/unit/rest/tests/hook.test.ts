@@ -18,7 +18,7 @@ function HookTests() {
     table = await createTable(context, project);
     hook = await createHook({ 
       fk_model_id: table.id, 
-      event: 'After', 
+      event: 'after', 
       operation: 'insert', 
       title: 'HooksTests', 
       notification: '{"type":"URL", "payload":{"path":"http://www.google.com"}}' 
