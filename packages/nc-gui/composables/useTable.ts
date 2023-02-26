@@ -4,7 +4,6 @@ import {
   Modal,
   SYSTEM_COLUMNS,
   extractSdkResponseErrorMsg,
-  generateUniqueTitle as generateTitle,
   message,
   reactive,
   useI18n,
@@ -67,10 +66,6 @@ export function useTable(onTableCreate?: (tableMeta: TableType) => void, baseId?
       table.table_name = `${title}`
     },
   )
-
-  const generateUniqueTitle = () => {
-    table.title = generateTitle('Sheet', tables.value, 'title')
-  }
 
   const deleteTable = (table: TableType) => {
     $e('c:table:delete')

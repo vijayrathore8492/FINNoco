@@ -12,16 +12,16 @@ import {
   useRoute,
   useRouter,
   useSidebar,
-  useTabs,
   useUIPermission,
   useViews,
   watch,
 } from '#imports'
 
 const meta = inject(MetaInj, ref())
-const { activeTab } = useTabs()
 
 const activeView = inject(ActiveViewInj, ref())
+
+const { activeTab } = useTabs()
 
 const { views, loadViews, isLoading } = useViews(meta)
 
@@ -80,11 +80,7 @@ watch(
         },
       })
     } else {
-      if (
-        (nextViews?.length && activeView.value !== nextViews[0]) ||
-        !activeView.value ||
-        !nextViews.includes(activeView.value)
-      ) {
+      if (nextViews?.length && activeView.value !== nextViews[0]) {
         activeView.value = nextViews[0]
       }
     }

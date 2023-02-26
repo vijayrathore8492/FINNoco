@@ -10,7 +10,6 @@ import {
   useApi,
   useCopy,
   useDashboard,
-  useGlobal,
   useI18n,
   useNuxtApp,
   useProject,
