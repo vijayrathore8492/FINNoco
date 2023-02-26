@@ -170,7 +170,10 @@ export class TreeViewPage extends BasePage {
     // Import menu
     await expect(this.get().locator(`.nc-import-menu`)).toHaveCount(param.role === 'creator' ? 1 : 0);
     // Team and Settings button
-    await expect(this.get().locator(`.nc-new-base`)).toHaveCount(param.role === 'creator' ? 1 : 0);
+    // FINNoco: viewers and editors can see settings
+    const hasAccessSettings = ['creator', 'owner', 'editor', 'viewer'].includes(param.role);
+    const count = hasAccessSettings ? 1 : 0;
+    await expect(this.get().locator(`.nc-new-base`)).toHaveCount(count);
     // Right click context menu
     await this.get().locator(`.nc-project-tree-tbl-Country`).click({
       button: 'right',
