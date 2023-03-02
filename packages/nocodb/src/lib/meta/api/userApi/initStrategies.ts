@@ -300,20 +300,12 @@ export function initStrategies(router): void {
                 if (user) {
                   return done(null, user);
                 } else {
-                  let roles = 'editor';
-
-                  if (!(await User.isFirst())) {
-                    roles = 'owner';
-                  }
-                  if (roles === 'editor') {
-                    return done(new Error('User not found'));
-                  }
                   const salt = await promisify(bcrypt.genSalt)(10);
                   user = await await User.insert({
                     email: profile.emails[0].value,
                     password: '',
                     salt,
-                    roles,
+                    roles: `${OrgUserRoles.VIEWER}`,
                     email_verified: true,
                     token_version: randomTokenString(),
                   });
