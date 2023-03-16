@@ -44,9 +44,10 @@ export function initStrategies(router): void {
                 if (req.ncProjectId) {
                   ProjectUser.get(req.ncProjectId, user.id)
                     .then(async (projectUser) => {
-                      user.roles = projectUser?.roles || user.roles;
                       user.roles =
-                        user.roles === 'owner' ? 'owner,creator' : user.roles;
+                        projectUser?.roles === 'owner'
+                          ? 'owner,creator'
+                          : projectUser?.roles;
                       // + (user.roles ? `,${user.roles}` : '');
                       // todo : cache
                       // await NocoCache.set(`${CacheScope.USER}:${key}`, user);
@@ -169,9 +170,10 @@ export function initStrategies(router): void {
 
               ProjectUser.get(req.ncProjectId, user.id)
                 .then(async (projectUser) => {
-                  user.roles = projectUser?.roles || user.roles;
                   user.roles =
-                    user.roles === 'owner' ? 'owner,creator' : user.roles;
+                    projectUser?.roles === 'owner'
+                      ? 'owner,creator'
+                      : projectUser?.roles;
                   // + (user.roles ? `,${user.roles}` : '');
 
                   await NocoCache.set(`${CacheScope.USER}:${key}`, user);
@@ -296,9 +298,10 @@ export function initStrategies(router): void {
                 if (req.ncProjectId) {
                   ProjectUser.get(req.ncProjectId, user.id)
                     .then(async (projectUser) => {
-                      user.roles = projectUser?.roles || user.roles;
                       user.roles =
-                        user.roles === 'owner' ? 'owner,creator' : user.roles;
+                        projectUser?.roles === 'owner'
+                          ? 'owner,creator'
+                          : projectUser?.roles;
                       // + (user.roles ? `,${user.roles}` : '');
 
                       done(null, user);
