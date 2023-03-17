@@ -158,4 +158,10 @@ export default class NcConnectionMgrv2 {
       ...base.getConnectionConfig(),
     });
   }
+
+  public static removeMemoizedSqlClient(base: Base) {
+    if (this.connectionRefs?.[base.project_id]?.[base.id]) {
+      delete this.connectionRefs?.[base.project_id]?.[base.id];
+    }
+  }
 }

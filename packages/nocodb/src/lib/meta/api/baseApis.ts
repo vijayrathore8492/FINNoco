@@ -8,6 +8,7 @@ import ncMetaAclMw from '../helpers/ncMetaAclMw';
 import { Tele } from 'nc-help';
 import { metaApiMetrics } from '../helpers/apiMetrics';
 import { populateMeta } from './helpers';
+import NcConnectionMgrv2 from '../../utils/common/NcConnectionMgrv2';
 
 export async function baseGet(
   req: Request<any, any, any>,
@@ -34,6 +35,7 @@ export async function baseUpdate(
   });
 
   delete base.config;
+  NcConnectionMgrv2.removeMemoizedSqlClient(base);
 
   Tele.emit('evt', {
     evt_type: 'base:updated',
