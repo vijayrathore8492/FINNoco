@@ -105,7 +105,8 @@ class BaseModelSqlv2 {
 
     await this.selectObject({ qb });
 
-    qb.where(_wherePk(this.model.primaryKeys, id));
+    const wherePk = _wherePk(this.model.primaryKeys, id);
+    qb.where(wherePk);
 
     const data = (await this.execAndParse(qb))?.[0];
 
@@ -1603,7 +1604,9 @@ class BaseModelSqlv2 {
       const query = this.dbDriver(this.tnPath).insert(insertObj);
       if ((this.isPg || this.isMssql) && this.model.primaryKey) {
         query.returning(
-          `${this.model.primaryKey.column_name} as ${this.model.primaryKey.title}`
+          this.model.primaryKeys.map(
+            (primaryKey) => `${primaryKey.column_name} as ${primaryKey.title}`
+          )
         );
         response = await this.execAndParse(query);
       }
@@ -1654,8 +1657,13 @@ class BaseModelSqlv2 {
           response?.[this.model.primaryKey.title])
       ) {
         response = await this.readByPk(
-          response?.[0]?.[this.model.primaryKey.title] ||
-            response?.[this.model.primaryKey.title]
+          this.model.primaryKeys
+            .map(
+              (primaryKey) =>
+                response?.[0]?.[primaryKey.title] ||
+                response?.[primaryKey.title]
+            )
+            .join('___')
         );
       } else if (ai) {
         response = await this.readByPk(

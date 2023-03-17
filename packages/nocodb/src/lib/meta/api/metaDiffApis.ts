@@ -23,6 +23,7 @@ export enum MetaDiffType {
   TABLE_REMOVE = 'TABLE_REMOVE',
   TABLE_COLUMN_ADD = 'TABLE_COLUMN_ADD',
   TABLE_COLUMN_TYPE_CHANGE = 'TABLE_COLUMN_TYPE_CHANGE',
+  TABLE_COLUMN_PK_CHANGE = 'TABLE_COLUMN_PK_CHANGE',
   TABLE_COLUMN_REMOVE = 'TABLE_COLUMN_REMOVE',
   VIEW_NEW = 'VIEW_NEW',
   VIEW_REMOVE = 'VIEW_REMOVE',
@@ -73,6 +74,7 @@ type MetaDiffChange = {
       type:
         | MetaDiffType.TABLE_COLUMN_TYPE_CHANGE
         | MetaDiffType.VIEW_COLUMN_TYPE_CHANGE
+        | MetaDiffType.TABLE_COLUMN_PK_CHANGE
         | MetaDiffType.TABLE_COLUMN_REMOVE
         | MetaDiffType.VIEW_COLUMN_REMOVE;
       tn?: string;
@@ -216,6 +218,16 @@ async function getMetaDiff(
         tableProp.detectedChanges.push({
           type: MetaDiffType.TABLE_COLUMN_TYPE_CHANGE,
           msg: `Column type changed(${column.cn})`,
+          cn: oldCol.column_name,
+          id: oldMeta.id,
+          column: oldCol,
+        });
+      }
+
+      if (oldCol.pk !== column.pk) {
+        tableProp.detectedChanges.push({
+          type: MetaDiffType.TABLE_COLUMN_PK_CHANGE,
+          msg: `Column pk changed(${column.cn})`,
           cn: oldCol.column_name,
           id: oldMeta.id,
           column: oldCol,
@@ -881,6 +893,15 @@ export async function baseMetaDiffSync(req, res) {
             );
             column.uidt = metaFact.getUIDataType(column);
             column.title = change.column.title;
+            await Column.update(change.column.id, column);
+          }
+          break;
+        case MetaDiffType.TABLE_COLUMN_PK_CHANGE:
+          {
+            const columns = (
+              await sqlClient.columnList({ tn: table_name })
+            )?.data?.list?.map((c) => ({ ...c, column_name: c.cn }));
+            const column = columns.find((c) => c.cn === change.cn);
             await Column.update(change.column.id, column);
           }
           break;
