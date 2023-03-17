@@ -90,12 +90,3 @@ jobs:
           docker buildx build --platform linux/amd64,linux/arm64 \
             -t $REGISTRY/$REPOSITORY:$IMAGE_TAG -t $REGISTRY/$REPOSITORY:latest --build-arg NC_VERSION=$IMAGE_TAG . --push
 
-      - name: Build, tag, and push docker image to Amazon ECR public repo
-        working-directory: packages/nocodb
-        env:
-          REGISTRY: ${{ steps.login-ecr.outputs.registry }}
-          REPOSITORY: finnoco
-          IMAGE_TAG: ${{ github.event.inputs.tag || inputs.tag }}
-        run: |
-          docker buildx build --platform linux/amd64,linux/arm64 \
-            -t public.ecr.aws/$REPOSITORY/nocodb:$IMAGE_TAG --build-arg NC_VERSION=$IMAGE_TAG . --push
