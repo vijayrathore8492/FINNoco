@@ -56,7 +56,7 @@ function KanbanViewTests() {
         password: null,
         show: 1,
         order: 3,
-        meta: null,
+        meta: {},
       });
     });
   })

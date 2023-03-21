@@ -1,8 +1,7 @@
 import type { ColumnType } from 'nocodb-sdk'
 import { isSystemColumn } from 'nocodb-sdk'
 import type { Ref } from 'vue'
-import { IsFormInj, IsLockedInj, IsPublicInj } from '#imports'
-import { inject, ref } from '#build/imports'
+import { IsFormInj, IsLockedInj, IsPublicInj, inject, ref } from '#imports'
 import { useHasAccessToColumn } from '~/composables/useHasAccessToColumn'
 
 export const useViewDisabled = () => {

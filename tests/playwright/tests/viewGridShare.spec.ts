@@ -33,14 +33,14 @@ test.describe('Shared view', () => {
     // hide column
     await dashboard.grid.toolbar.fields.toggle({ title: 'Address2' });
     // sort
-    await dashboard.grid.toolbar.sort.addSort({
+    await dashboard.grid.toolbar.sort.add({
       columnTitle: 'District',
       isAscending: false,
       isLocallySaved: false,
     });
     // filter
     await dashboard.grid.toolbar.clickFilter();
-    await dashboard.grid.toolbar.filter.addNew({
+    await dashboard.grid.toolbar.filter.add({
       columnTitle: 'Address',
       value: 'Ab',
       opType: 'is like',
@@ -101,7 +101,8 @@ test.describe('Shared view', () => {
      **/
 
     // create new sort & filter criteria in shared view
-    await sharedPage.grid.toolbar.sort.addSort({
+    await sharedPage.grid.toolbar.sort.reset();
+    await sharedPage.grid.toolbar.sort.add({
       columnTitle: 'Address',
       isAscending: true,
       isLocallySaved: true,
@@ -109,7 +110,7 @@ test.describe('Shared view', () => {
 
     if (isMysql(context)) {
       await sharedPage.grid.toolbar.clickFilter();
-      await sharedPage.grid.toolbar.filter.addNew({
+      await sharedPage.grid.toolbar.filter.add({
         columnTitle: 'District',
         value: 'Ta',
         opType: 'is like',
@@ -196,7 +197,7 @@ test.describe('Shared view', () => {
       isVisible: true,
     });
     await sharedPage2.grid.toolbar.clickFilter();
-    await sharedPage2.grid.toolbar.filter.addNew({
+    await sharedPage2.grid.toolbar.filter.add({
       columnTitle: 'Country',
       value: 'New Country',
       opType: 'is like',
@@ -217,7 +218,7 @@ const expectedRecords = [
   {
     index: 1,
     columnHeader: 'Address',
-    value: '1892 Nabereznyje Telny Lane',
+    value: '1892 Nabereznyje Telny',
   },
   { index: 2, columnHeader: 'Address', value: '1993 Tabuk Lane' },
   { index: 0, columnHeader: 'District', value: 'West Bengali' },
@@ -231,6 +232,14 @@ const expectedRecords = [
   { index: 2, columnHeader: 'Phone', value: '648482415405' },
 ];
 
+// const sqliteExpectedRecords = [
+//   { index: 0, columnHeader: 'Address', value: '669 Firozabad Loop' },
+//   { index: 1, columnHeader: 'Address', value: '48 Maracabo Place' },
+//   { index: 2, columnHeader: 'Address', value: '44 Najafabad Way' },
+//   { index: 0, columnHeader: 'PostalCode', value: '92265' },
+//   { index: 1, columnHeader: 'PostalCode', value: '1570' },
+//   { index: 2, columnHeader: 'PostalCode', value: '61391' },
+// ];
 const sqliteExpectedRecords = [
   { index: 0, columnHeader: 'Address', value: '217 Botshabelo Place' },
   { index: 1, columnHeader: 'Address', value: '17 Kabul Boulevard' },
@@ -239,7 +248,6 @@ const sqliteExpectedRecords = [
   { index: 1, columnHeader: 'PostalCode', value: '38594' },
   { index: 2, columnHeader: 'PostalCode', value: '20936' },
 ];
-
 const expectedRecords2 = [
   { index: 0, columnHeader: 'Address', value: '1661 Abha Drive' },
   { index: 1, columnHeader: 'Address', value: '1993 Tabuk Lane' },

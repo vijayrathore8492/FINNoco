@@ -38,10 +38,7 @@ hooks.hook('page:finish', () => {
     </Transition>
 
     <a-layout class="!flex-col">
-      <a-layout-header
-        v-if="!route.meta.public && signedIn && !route.meta.hideHeader && !hasSider"
-        class="flex !bg-primary items-center text-white pl-4 pr-5 shadow-lg"
-      >
+      <a-layout-header v-if="!route.meta.public && signedIn && !route.meta.hideHeader && !hasSider" class="nc-navbar">
         <div
           v-if="!route.params.projectType"
           v-e="['c:navbar:home']"
@@ -76,7 +73,7 @@ hooks.hook('page:finish', () => {
           <a-dropdown :trigger="['click']" overlay-class-name="nc-dropdown-user-accounts-menu">
             <MdiDotsVertical
               data-testid="nc-menu-accounts"
-              class="md:text-xl cursor-pointer hover:text-accent nc-menu-accounts text-white"
+              class="md:text-xl cursor-pointer hover:text-accent nc-menu-accounts"
               @click.prevent
             />
 
@@ -153,5 +150,9 @@ hooks.hook('page:finish', () => {
   &:active::after {
     @apply ring ring-accent ring-opacity-100;
   }
+}
+
+.nc-navbar {
+  @apply flex !bg-white items-center !pl-2 !pr-5;
 }
 </style>

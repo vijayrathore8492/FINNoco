@@ -65,6 +65,11 @@ export class DashboardPage extends BasePage {
     await this.rootPage.locator('div.nc-project-menu-item:has-text(" Team & Settings")').click();
   }
 
+  async gotoProjectSubMenu({ title }: { title: string }) {
+    await this.rootPage.getByTestId('nc-project-menu').click();
+    await this.rootPage.locator(`div.nc-project-menu-item:has-text("${title}")`).click();
+  }
+
   async verifyInTabBar({ title }: { title: string }) {
     await this.tabBar.textContent().then(text => expect(text).toContain(title));
   }
@@ -115,9 +120,11 @@ export class DashboardPage extends BasePage {
     await this.get().getByTestId('grid-load-spinner').waitFor({ state: 'hidden' });
 
     if (mode === 'standard') {
-      await expect(this.rootPage).toHaveURL(
-        `/#/nc/${this.project.id}/${title === 'Team & Auth' ? 'auth' : `table/${title}`}`
-      );
+      if (title === 'Team & Auth') {
+        await expect(this.rootPage).toHaveURL(`/#/nc/${this.project.id}/auth`);
+      } else {
+        await expect(this.rootPage).toHaveURL(new RegExp(`#/nc/${this.project.id}/table/md_.{14}`));
+      }
     }
   }
 
@@ -127,6 +134,7 @@ export class DashboardPage extends BasePage {
     await projMenu.locator('[data-menu-id="account"]:visible').click();
     await this.rootPage.locator('div.nc-project-menu-item:has-text("Sign Out"):visible').click();
     await this.rootPage.locator('[data-testid="nc-form-signin"]:visible').waitFor();
+    await new Promise(resolve => setTimeout(resolve, 150));
   }
 
   async validateProjectMenu(param: { role: string; mode?: string }) {

@@ -6,20 +6,17 @@ import {
   CellValueInj,
   ColumnInj,
   MetaInj,
-  ReadonlyInj,
   computed,
   inject,
   isAttachment,
   provide,
   ref,
-  refAutoReset,
   useMetas,
+  useShowNotEditableWarning,
   watch,
 } from '#imports'
 
 const { metas, getMeta } = useMetas()
-
-provide(ReadonlyInj, ref(true))
 
 const column = inject(ColumnInj, ref())
 
@@ -29,7 +26,7 @@ const cellValue = inject(CellValueInj, ref())
 
 const relationColumn = computed(
   () =>
-    meta.value?.columns?.find((c) => c.id === (column.value?.colOptions as LookupType)?.fk_relation_column_id) as
+    meta.value?.columns?.find((c: ColumnType) => c.id === (column.value?.colOptions as LookupType)?.fk_relation_column_id) as
       | (ColumnType & {
           colOptions: LinkToAnotherRecordType | undefined
         })
@@ -38,7 +35,7 @@ const relationColumn = computed(
 
 watch(
   relationColumn,
-  async (relationCol) => {
+  async (relationCol: { colOptions: LinkToAnotherRecordType }) => {
     if (relationCol && relationCol.colOptions) await getMeta(relationCol.colOptions.fk_related_model_id!)
   },
   { immediate: true },
@@ -75,26 +72,13 @@ provide(MetaInj, lookupTableMeta)
 
 provide(CellUrlDisableOverlayInj, ref(true))
 
-const timeout = 3000 // in ms
-
-const showEditWarning = refAutoReset(false, timeout)
-
-const showClearWarning = refAutoReset(false, timeout)
-
-useSelectedCellKeyupListener(inject(ActiveCellInj, ref(false)), (e: KeyboardEvent) => {
-  switch (e.key) {
-    case 'Enter':
-      showEditWarning.value = true
-      break
-    default:
-      showClearWarning.value = true
-  }
-})
+const { showEditNonEditableFieldWarning, showClearNonEditableFieldWarning, activateShowEditNonEditableFieldWarning } =
+  useShowNotEditableWarning()
 </script>
 
 <template>
-  <div class="h-full">
-    <div class="h-full flex gap-1 overflow-x-auto p-1" @dblclick="showEditWarning = true">
+  <div class="h-full" @dblclick="activateShowEditNonEditableFieldWarning">
+    <div class="h-full flex gap-1 overflow-x-auto p-1">
       <template v-if="lookupColumn">
         <!-- Render virtual cell -->
         <div v-if="isVirtualCol(lookupColumn)">
@@ -107,36 +91,54 @@ useSelectedCellKeyupListener(inject(ActiveCellInj, ref(false)), (e: KeyboardEven
               :edit-enabled="false"
               :model-value="v"
               :column="lookupColumn"
+              :read-only="true"
             />
           </template>
 
-          <LazySmartsheetVirtualCell v-else :edit-enabled="false" :model-value="arrValue" :column="lookupColumn" />
+          <LazySmartsheetVirtualCell
+            v-else
+            :edit-enabled="false"
+            :read-only="true"
+            :model-value="arrValue"
+            :column="lookupColumn"
+          />
         </div>
 
         <!-- Render normal cell -->
         <template v-else>
-          <!-- For attachment cell avoid adding chip style -->
-          <div
-            v-for="(v, i) of arrValue"
-            :key="i"
-            class="min-w-max"
-            :class="{
-              'bg-gray-100 px-1 rounded-full flex-1': !isAttachment(lookupColumn),
-              ' border-gray-200 rounded border-1': ![UITypes.Attachment, UITypes.MultiSelect, UITypes.SingleSelect].includes(
-                lookupColumn.uidt,
-              ),
-            }"
-          >
-            <LazySmartsheetCell :model-value="v" :column="lookupColumn" :edit-enabled="false" :virtual="true" />
+          <div v-if="isAttachment(lookupColumn) && arrValue[0] && !Array.isArray(arrValue[0]) && typeof arrValue[0] === 'object'">
+            <LazySmartsheetCell :model-value="arrValue" :column="lookupColumn" :edit-enabled="false" :read-only="true" />
           </div>
+          <!-- For attachment cell avoid adding chip style -->
+          <template v-else>
+            <div
+              v-for="(v, i) of arrValue"
+              :key="i"
+              class="min-w-max"
+              :class="{
+                'bg-gray-100 px-1 rounded-full flex-1': !isAttachment(lookupColumn),
+                'border-gray-200 rounded border-1': ![UITypes.Attachment, UITypes.MultiSelect, UITypes.SingleSelect].includes(
+                  lookupColumn.uidt,
+                ),
+              }"
+            >
+              <LazySmartsheetCell
+                :model-value="v"
+                :column="lookupColumn"
+                :edit-enabled="false"
+                :virtual="true"
+                :read-only="true"
+              />
+            </div>
+          </template>
         </template>
       </template>
     </div>
     <div>
-      <div v-if="showEditWarning" class="text-left text-wrap mt-2 text-[#e65100] text-xs">
+      <div v-if="showEditNonEditableFieldWarning" class="text-left text-wrap mt-2 text-[#e65100] text-xs">
         {{ $t('msg.info.computedFieldEditWarning') }}
       </div>
-      <div v-if="showClearWarning" class="text-left text-wrap mt-2 text-[#e65100] text-xs">
+      <div v-if="showClearNonEditableFieldWarning" class="text-left text-wrap mt-2 text-[#e65100] text-xs">
         {{ $t('msg.info.computedFieldDeleteWarning') }}
       </div>
     </div>

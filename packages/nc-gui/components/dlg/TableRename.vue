@@ -21,9 +21,10 @@ import {
 interface Props {
   modelValue?: boolean
   tableMeta: TableType
+  baseId: string
 }
 
-const { tableMeta, ...props } = defineProps<Props>()
+const { tableMeta, baseId, ...props } = defineProps<Props>()
 
 const emit = defineEmits(['update:modelValue', 'updated'])
 
@@ -57,11 +58,11 @@ const validators = computed(() => {
         validator: (rule: any, value: any) => {
           return new Promise<void>((resolve, reject) => {
             let tableNameLengthLimit = 255
-            if (isMysql) {
+            if (isMysql(baseId)) {
               tableNameLengthLimit = 64
-            } else if (isPg) {
+            } else if (isPg(baseId)) {
               tableNameLengthLimit = 63
-            } else if (isMssql) {
+            } else if (isMssql(baseId)) {
               tableNameLengthLimit = 128
             }
             const projectPrefix = project?.value?.prefix || ''
@@ -79,9 +80,7 @@ const validators = computed(() => {
               return reject(new Error('Leading or trailing whitespace not allowed in table name'))
             }
             if (
-              !(tables?.value || []).every(
-                (t) => t.id === tableMeta.id || t.table_name.toLowerCase() !== (value || '').toLowerCase(),
-              )
+              !(tables?.value || []).every((t) => t.id === tableMeta.id || t.title.toLowerCase() !== (value || '').toLowerCase())
             ) {
               return reject(new Error('Duplicate table alias'))
             }

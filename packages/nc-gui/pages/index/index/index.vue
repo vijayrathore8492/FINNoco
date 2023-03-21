@@ -126,10 +126,6 @@ const getProjectPrimary = (project: ProjectType) => {
   return meta.theme?.primaryColor || themeV2Colors['royal-blue'].DEFAULT
 }
 
-const hasAccessToProjectActions = (project: ProjectType) => {
-  return project.roles && (project.roles.match('owner') || project.roles.match('creator'))
-}
-
 const customRow = (record: ProjectType) => ({
   onClick: async () => {
     await navigateTo(`/nc/${record.id}`)
@@ -152,9 +148,13 @@ onBeforeMount(loadProjects)
 const { copy } = useCopy()
 
 const copyProjectMeta = async () => {
-  const aggregatedMetaInfo = await $api.utils.aggregatedMetaInfo()
-  copy(JSON.stringify(aggregatedMetaInfo))
-  message.info('Copied aggregated project meta to clipboard')
+  try {
+    const aggregatedMetaInfo = await $api.utils.aggregatedMetaInfo()
+    await copy(JSON.stringify(aggregatedMetaInfo))
+    message.info('Copied aggregated project meta to clipboard')
+  } catch (e) {
+    message.error(await extractSdkResponseErrorMsg(e))
+  }
 }
 </script>
 

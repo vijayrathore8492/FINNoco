@@ -49,7 +49,7 @@ const [useProvideExpandedFormStore, useExpandedFormStore] = useInjectionState((m
   const { sharedView } = useSharedView()
 
   // getters
-  const primaryValue = computed(() => {
+  const displayValue = computed(() => {
     if (row?.value?.row) {
       const col = meta?.value?.columns?.find((c) => c.pv)
 
@@ -171,12 +171,27 @@ const [useProvideExpandedFormStore, useExpandedFormStore] = useInjectionState((m
 
           await $api.dbTableRow.update(NOCO, project.value.title as string, meta.value.title, id, updateOrInsertObj)
 
-          if (commentsDrawer.value) {
-            await loadCommentsAndLogs()
+          for (const key of Object.keys(updateOrInsertObj)) {
+            // audit
+            $api.utils
+              .auditRowUpdate(id, {
+                fk_model_id: meta.value.id,
+                column_name: key,
+                row_id: id,
+                value: getHTMLEncodedText(updateOrInsertObj[key]),
+                prev_value: getHTMLEncodedText(row.value.oldRow[key]),
+              })
+              .then(async () => {
+                /** load latest comments/audit if right drawer is open */
+                if (commentsDrawer.value) {
+                  await loadCommentsAndLogs()
+                }
+              })
           }
         } else {
           // No columns to update
-          return message.info(t('msg.info.noColumnsToUpdate'))
+          message.info(t('msg.info.noColumnsToUpdate'))
+          return
         }
       }
 
@@ -185,7 +200,7 @@ const [useProvideExpandedFormStore, useExpandedFormStore] = useInjectionState((m
         addOrEditStackRow(row.value, isNewRow)
       }
 
-      message.success(`${primaryValue.value || 'Row'} updated successfully.`)
+      message.success(`${displayValue.value || 'Row'} updated successfully.`)
 
       changedColumns.value = new Set()
     } catch (e: any) {
@@ -223,7 +238,7 @@ const [useProvideExpandedFormStore, useExpandedFormStore] = useInjectionState((m
     isYou,
     commentsDrawer,
     row,
-    primaryValue,
+    displayValue,
     save,
     changedColumns,
     loadRow,

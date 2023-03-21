@@ -10,6 +10,12 @@ import Project from '../../../../src/lib/models/Project';
 import { expect } from 'chai';
 import Column from '../../../../src/lib/models/Column';
 
+// Test case list
+// 1. Qr Code Column
+// a. adding a QR code column which references another column
+//   - delivers the same cell values as the referenced column
+//   - gets deleted if the referenced column gets deleted
+
 function columnTypeSpecificTests() {
   let context;
   let project: Project;

@@ -1,10 +1,9 @@
 import type { LinkToAnotherRecordType, TableType } from 'nocodb-sdk'
-import { UITypes } from 'nocodb-sdk'
+import { UITypes, isSystemColumn } from 'nocodb-sdk'
 import {
   Modal,
   SYSTEM_COLUMNS,
   extractSdkResponseErrorMsg,
-  generateUniqueTitle as generateTitle,
   message,
   reactive,
   useI18n,
@@ -16,7 +15,7 @@ import {
 } from '#imports'
 import { TabType } from '~/lib'
 
-export function useTable(onTableCreate?: (tableMeta: TableType) => void) {
+export function useTable(onTableCreate?: (tableMeta: TableType) => void, baseId?: string) {
   const table = reactive<{ title: string; table_name: string; columns: string[] }>({
     title: '',
     table_name: '',
@@ -32,8 +31,9 @@ export function useTable(onTableCreate?: (tableMeta: TableType) => void) {
   const { loadTables } = useProject()
 
   const { closeTab } = useTabs()
+  const { sqlUis, project, tables } = useProject()
 
-  const { sqlUi, project, tables } = useProject()
+  const sqlUi = computed(() => (baseId && sqlUis.value[baseId] ? sqlUis.value[baseId] : Object.values(sqlUis.value)[0]))
 
   const createTable = async () => {
     if (!sqlUi?.value) return
@@ -49,7 +49,7 @@ export function useTable(onTableCreate?: (tableMeta: TableType) => void) {
     })
 
     try {
-      const tableMeta = await $api.dbTable.create(project?.value?.id as string, {
+      const tableMeta = await $api.base.tableCreate(project?.value?.id as string, (baseId || project?.value?.bases?.[0].id)!, {
         ...table,
         columns,
       })
@@ -63,13 +63,9 @@ export function useTable(onTableCreate?: (tableMeta: TableType) => void) {
   watch(
     () => table.title,
     (title) => {
-      table.table_name = `${project?.value?.prefix || ''}${title}`
+      table.table_name = `${title}`
     },
   )
-
-  const generateUniqueTitle = () => {
-    table.title = generateTitle('Sheet', tables.value, 'title')
-  }
 
   const deleteTable = (table: TableType) => {
     $e('c:table:delete')
@@ -84,7 +80,7 @@ export function useTable(onTableCreate?: (tableMeta: TableType) => void) {
       async onOk() {
         try {
           const meta = (await getMeta(table.id as string, true)) as TableType
-          const relationColumns = meta?.columns?.filter((c) => c.uidt === UITypes.LinkToAnotherRecord)
+          const relationColumns = meta?.columns?.filter((c) => c.uidt === UITypes.LinkToAnotherRecord && !isSystemColumn(c))
 
           if (relationColumns?.length) {
             const refColMsgs = await Promise.all(

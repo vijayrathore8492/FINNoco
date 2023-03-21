@@ -24,7 +24,6 @@ export async function getViewAndModelFromRequestByAliasOrId(
 
   const model = await Model.getByAliasOrId({
     project_id: project.id,
-    base_id: project.bases?.[0]?.id,
     aliasOrId: req.params.tableName,
   });
   const view =
@@ -59,7 +58,10 @@ export async function extractXlsxData(view: View, req) {
   });
 
   const { offset, dbRows, elapsed } = await getDbRows(baseModel, view, req);
-  const data = XLSX.utils.json_to_sheet(dbRows);
+
+  const fields = req.query.fields as string[];
+
+  const data = XLSX.utils.json_to_sheet(dbRows, { header: fields });
 
   return { offset, dbRows, elapsed, data };
 }
@@ -160,6 +162,7 @@ async function getDbRows(baseModel, view: View, req: Request) {
         dbRow[column.title] = await serializeCellValue({
           value: row[column.title],
           column,
+          siteUrl: req['ncSiteUrl'],
         });
       }
       dbRows.push(dbRow);
@@ -171,9 +174,11 @@ async function getDbRows(baseModel, view: View, req: Request) {
 export async function serializeCellValue({
   value,
   column,
+  siteUrl,
 }: {
   column?: Column;
   value: any;
+  siteUrl: string;
 }) {
   if (!column) {
     return value;
@@ -192,7 +197,9 @@ export async function serializeCellValue({
 
       return (data || []).map(
         (attachment) =>
-          `${encodeURI(attachment.title)}(${encodeURI(attachment.url)})`
+          `${encodeURI(attachment.title)}(${encodeURI(
+            attachment.path ? `${siteUrl}/${attachment.path}` : attachment.url
+          )})`
       );
     }
     case UITypes.Lookup:
@@ -205,6 +212,7 @@ export async function serializeCellValue({
               serializeCellValue({
                 value: v,
                 column: lookupColumn,
+                siteUrl,
               })
             )
           )
@@ -219,7 +227,7 @@ export async function serializeCellValue({
         await relatedModel.getColumns();
         return [...(Array.isArray(value) ? value : [value])]
           .map((v) => {
-            return v[relatedModel.primaryValue?.title];
+            return v[relatedModel.displayValue?.title];
           })
           .join(', ');
       }

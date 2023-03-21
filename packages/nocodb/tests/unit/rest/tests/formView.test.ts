@@ -33,7 +33,7 @@ function FormViewTests() {
         "fk_model_id": table.id,
         "is_default": null,
         "lock_type": "collaborative",
-        "meta": null,
+        "meta": {},
         "password": null,
         "project_id": project.id,
         "show": 1,

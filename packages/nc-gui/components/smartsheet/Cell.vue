@@ -87,7 +87,9 @@ const isForm = inject(IsFormInj, ref(false))
 
 const { currentRow } = useSmartsheetRowStoreOrThrow()
 
-const { sqlUi } = useProject()
+const { sqlUis } = useProject()
+
+const sqlUi = ref(column.value?.base_id ? sqlUis.value[column.value?.base_id] : Object.values(sqlUis.value)[0])
 
 const abstractType = computed(() => column.value && sqlUi.value.getAbstractType(column.value))
 
@@ -110,7 +112,6 @@ const vModel = computed({
         syncValue()
       } else if (!isManualSaved(column.value)) {
         emit('save')
-        currentRow.value.rowMeta.changed = true
       }
     }
   },
@@ -127,14 +128,26 @@ const syncAndNavigate = (dir: NavigateDir, e: KeyboardEvent) => {
 
   if (!isForm.value) e.stopImmediatePropagation()
 }
+
+const isNumericField = computed(() => {
+  return (
+    isInt(column.value, abstractType.value) ||
+    isFloat(column.value, abstractType.value) ||
+    isDecimal(column.value) ||
+    isCurrency(column.value) ||
+    isPercent(column.value) ||
+    isDuration(column.value)
+  )
+})
 </script>
 
 <template>
   <div
-    class="nc-cell w-full"
+    class="nc-cell w-full h-full"
     :class="[
       `nc-cell-${(column?.uidt || 'default').toLowerCase()}`,
       { 'text-blue-600': isPrimary(column) && !props.virtual && !isForm },
+      { 'nc-grid-numeric-cell': isGrid && !isForm && isNumericField },
     ]"
     @keydown.enter.exact="syncAndNavigate(NavigateDir.NEXT, $event)"
     @keydown.shift.enter.exact="syncAndNavigate(NavigateDir.PREV, $event)"
@@ -181,5 +194,12 @@ const syncAndNavigate = (dir: NavigateDir, e: KeyboardEvent) => {
 .ant-skeleton-paragraph.cell-skeleton {
   padding: 0;
   margin: 0;
+}
+
+.nc-grid-numeric-cell {
+  @apply text-right;
+  :deep(input) {
+    @apply text-right;
+  }
 }
 </style>

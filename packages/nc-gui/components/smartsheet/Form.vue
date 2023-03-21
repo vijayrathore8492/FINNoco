@@ -33,7 +33,7 @@ provide(IsGalleryInj, ref(false))
 // todo: generate hideCols based on default values
 const hiddenCols = ['created_at', 'updated_at']
 
-const hiddenColTypes = [UITypes.Rollup, UITypes.Lookup, UITypes.Formula, UITypes.QrCode, UITypes.SpecificDBType]
+const hiddenColTypes = [UITypes.Rollup, UITypes.Lookup, UITypes.Formula, UITypes.QrCode, UITypes.Barcode, UITypes.SpecificDBType]
 
 const state = useGlobal()
 
@@ -229,7 +229,9 @@ async function addAllColumns() {
 }
 
 function shouldSkipColumn(col: Record<string, any>) {
-  return isDbRequired(col) || !!col.required || (!!col.rqd && !col.cdf) || col.uidt === UITypes.QrCode
+  return (
+    isDbRequired(col) || !!col.required || (!!col.rqd && !col.cdf) || col.uidt === UITypes.QrCode || col.uidt === UITypes.Barcode
+  )
 }
 
 async function removeAllColumns() {
@@ -660,7 +662,12 @@ watch(view, (nextView) => {
                     v-if="isVirtualCol(element)"
                     :name="element.title"
                     class="!mb-0"
-                    :rules="[{ required: isRequired(element, element.required), message: `${element.title} is required` }]"
+                    :rules="[
+                      {
+                        required: isRequired(element, element.required),
+                        message: `${element.label || element.title} is required`,
+                      },
+                    ]"
                   >
                     <LazySmartsheetVirtualCell
                       v-model="formState[element.title]"
@@ -677,7 +684,12 @@ watch(view, (nextView) => {
                     v-else
                     :name="element.title"
                     class="!mb-0"
-                    :rules="[{ required: isRequired(element, element.required), message: `${element.title} is required` }]"
+                    :rules="[
+                      {
+                        required: isRequired(element, element.required),
+                        message: `${element.label || element.title} is required`,
+                      },
+                    ]"
                   >
                     <LazySmartsheetCell
                       v-model="formState[element.title]"

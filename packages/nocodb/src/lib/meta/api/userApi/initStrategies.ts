@@ -7,7 +7,6 @@ import passport from 'passport';
 import passportJWT from 'passport-jwt';
 import { Strategy as AuthTokenStrategy } from 'passport-auth-token';
 import { Strategy as GoogleStrategy } from 'passport-google-oauth20';
-import { randomTokenString } from '../../helpers/stringHelpers';
 
 const PassportLocalStrategy = require('passport-local').Strategy;
 const ExtractJwt = passportJWT.ExtractJwt;
@@ -24,6 +23,7 @@ import { CacheGetType, CacheScope } from '../../../utils/globals';
 import ApiToken from '../../../models/ApiToken';
 import Noco from '../../../Noco';
 import Plugin from '../../../models/Plugin';
+import { registerNewUserIfAllowed } from './userApis';
 
 export function initStrategies(router): void {
   passport.use(
@@ -44,9 +44,10 @@ export function initStrategies(router): void {
                 if (req.ncProjectId) {
                   ProjectUser.get(req.ncProjectId, user.id)
                     .then(async (projectUser) => {
-                      user.roles = projectUser?.roles || user.roles;
                       user.roles =
-                        user.roles === 'owner' ? 'owner,creator' : user.roles;
+                        projectUser?.roles === 'owner'
+                          ? 'owner,creator'
+                          : projectUser?.roles;
                       // + (user.roles ? `,${user.roles}` : '');
                       // todo : cache
                       // await NocoCache.set(`${CacheScope.USER}:${key}`, user);
@@ -169,9 +170,10 @@ export function initStrategies(router): void {
 
               ProjectUser.get(req.ncProjectId, user.id)
                 .then(async (projectUser) => {
-                  user.roles = projectUser?.roles || user.roles;
                   user.roles =
-                    user.roles === 'owner' ? 'owner,creator' : user.roles;
+                    projectUser?.roles === 'owner'
+                      ? 'owner,creator'
+                      : projectUser?.roles;
                   // + (user.roles ? `,${user.roles}` : '');
 
                   await NocoCache.set(`${CacheScope.USER}:${key}`, user);
@@ -207,6 +209,13 @@ export function initStrategies(router): void {
           if (!user) {
             return done({ msg: `Email ${email} is not registered!` });
           }
+
+          if (!user.salt) {
+            return done({
+              msg: `Please sign up with the invite token first or reset the password by clicking Forgot your password.`,
+            });
+          }
+
           const hashedPassword = await promisify(bcrypt.hash)(
             password,
             user.salt
@@ -284,33 +293,36 @@ export function initStrategies(router): void {
 
           User.getByEmail(email)
             .then(async (user) => {
-              if (req.ncProjectId) {
-                ProjectUser.get(req.ncProjectId, user.id)
-                  .then(async (projectUser) => {
-                    user.roles = projectUser?.roles || user.roles;
-                    user.roles =
-                      user.roles === 'owner' ? 'owner,creator' : user.roles;
-                    // + (user.roles ? `,${user.roles}` : '');
+              if (user) {
+                // if project id defined extract project level roles
+                if (req.ncProjectId) {
+                  ProjectUser.get(req.ncProjectId, user.id)
+                    .then(async (projectUser) => {
+                      user.roles =
+                        projectUser?.roles === 'owner'
+                          ? 'owner,creator'
+                          : projectUser?.roles;
+                      // + (user.roles ? `,${user.roles}` : '');
 
-                    done(null, user);
-                  })
-                  .catch((e) => done(e));
-              } else {
-                // const roles = projectUser?.roles ? JSON.parse(projectUser.roles) : {guest: true};
-                if (user) {
-                  return done(null, user);
+                      done(null, user);
+                    })
+                    .catch((e) => done(e));
                 } else {
-                  const salt = await promisify(bcrypt.genSalt)(10);
-                  user = await await User.insert({
-                    email: profile.emails[0].value,
-                    password: '',
-                    salt,
-                    roles: `${OrgUserRoles.VIEWER}`,
-                    email_verified: true,
-                    token_version: randomTokenString(),
-                  });
                   return done(null, user);
                 }
+                // if user not found create new user if allowed
+                // or return error
+              } else {
+                const salt = await promisify(bcrypt.genSalt)(10);
+                const user = await registerNewUserIfAllowed({
+                  firstname: null,
+                  lastname: null,
+                  email_verification_token: null,
+                  email: profile.emails[0].value,
+                  password: '',
+                  salt,
+                });
+                return done(null, user);
               }
             })
             .catch((err) => {

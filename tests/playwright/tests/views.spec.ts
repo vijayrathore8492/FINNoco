@@ -1,7 +1,7 @@
 import { expect, test } from '@playwright/test';
 import { DashboardPage } from '../pages/Dashboard';
-import setup from '../setup';
 import { ToolbarPage } from '../pages/Dashboard/common/Toolbar';
+import setup from '../setup';
 
 test.describe('Views CRUD Operations', () => {
   let dashboard: DashboardPage;
@@ -44,9 +44,15 @@ test.describe('Views CRUD Operations', () => {
       title: 'CityGallery',
       newTitle: 'CityGallery2',
     });
+
     await dashboard.viewSidebar.verifyView({
       title: 'CityGallery2',
       index: 3,
+    });
+
+    await dashboard.viewSidebar.changeViewIcon({
+      title: 'CityGallery2',
+      icon: 'american-football',
     });
 
     // todo: Enable when view bug is fixed

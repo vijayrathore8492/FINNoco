@@ -2,12 +2,13 @@ import { ConfigProvider } from 'ant-design-vue'
 import tinycolor from 'tinycolor2'
 import { createGlobalState, hexToRGB, ref, themeV2Colors, useCssVar } from '#imports'
 import type { ThemeConfig } from '~/lib'
+import { finnThemeColors } from '~/utils'
 
 export const useTheme = createGlobalState((config?: Partial<ThemeConfig>) => {
   const primaryColor = useCssVar('--color-primary', typeof document !== 'undefined' ? document.documentElement : null)
   const accentColor = useCssVar('--color-accent', typeof document !== 'undefined' ? document.documentElement : null)
   const defaultTheme = {
-    primaryColor: themeV2Colors['royal-blue'].DEFAULT,
+    primaryColor: finnThemeColors.black,
     accentColor: themeV2Colors.pink['500'],
   }
 

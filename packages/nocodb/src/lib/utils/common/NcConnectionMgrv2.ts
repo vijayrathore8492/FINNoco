@@ -151,11 +151,17 @@ export default class NcConnectionMgrv2 {
   // }
 
   @SqlClientDecorator.modifyColumnList()
-  public static getSqlClient(base: Base, _knex = null): any {
+  public static async getSqlClient(base: Base, _knex = null) {
     const knex = _knex || this.get(base);
     return SqlClientFactory.create({
       knex,
       ...base.getConnectionConfig(),
     });
+  }
+
+  public static removeMemoizedSqlClient(base: Base) {
+    if (this.connectionRefs?.[base.project_id]?.[base.id]) {
+      delete this.connectionRefs?.[base.project_id]?.[base.id];
+    }
   }
 }

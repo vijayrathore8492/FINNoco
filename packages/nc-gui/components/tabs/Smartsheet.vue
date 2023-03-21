@@ -63,6 +63,14 @@ provide(
   ReadonlyInj,
   computed(() => !isUIAllowed('xcDatatableEditable')),
 )
+
+watch(
+  () => isGrid.value,
+  () => {
+    console.log('in smartsheet isGrid changed', isGrid.value)
+  },
+  { immediate: true },
+)
 </script>
 
 <template>

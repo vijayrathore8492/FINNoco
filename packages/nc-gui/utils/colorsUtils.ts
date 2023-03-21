@@ -64,6 +64,12 @@ export const themeV2Colors = {
   'pink': colors.pink,
 }
 
+export const finnThemeColors = {
+  white: '#FFFFFF',
+  black: '#191919',
+  primary: '#0086EA',
+}
+
 const isValidHex = (hex: string) => /^#([A-Fa-f0-9]{3,4}){1,2}$/.test(hex)
 
 const getChunksFromString = (st: string, chunkSize: number) => st.match(new RegExp(`.{${chunkSize}}`, 'g'))

@@ -3,10 +3,13 @@ import { computed, extractSdkResponseErrorMsg, message, onMounted, useGlobal, us
 
 const { $api } = useNuxtApp()
 
-const { currentVersion, latestRelease, hiddenRelease } = useGlobal()
+const { currentVersion, latestRelease, hiddenRelease, appInfo } = useGlobal()
 
 const releaseAlert = computed({
   get() {
+    if (currentVersion.value?.includes('-beta.') || latestRelease.value?.includes('-beta.')) {
+      return false
+    }
     return (
       currentVersion.value &&
       latestRelease.value &&
@@ -22,7 +25,7 @@ const releaseAlert = computed({
 async function fetchReleaseInfo() {
   try {
     const versionInfo = await $api.utils.appVersion()
-    if (versionInfo && versionInfo.releaseVersion && versionInfo.currentVersion && !/[^0-9.]/.test(versionInfo.currentVersion)) {
+    if (versionInfo && versionInfo.releaseVersion && versionInfo.currentVersion) {
       currentVersion.value = versionInfo.currentVersion
       latestRelease.value = versionInfo.releaseVersion
     } else {
@@ -38,7 +41,7 @@ onMounted(async () => await fetchReleaseInfo())
 </script>
 
 <template>
-  <div v-if="releaseAlert" class="flex items-center">
+  <div v-if="releaseAlert && !appInfo.useFinnTheme" class="flex items-center">
     <a-dropdown :trigger="['click']" placement="bottom" overlay-class-name="nc-dropdown-upgrade-menu">
       <a-button class="!bg-primary !border-none">
         <div class="flex gap-1 items-center text-white">

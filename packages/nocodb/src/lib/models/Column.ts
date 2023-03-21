@@ -6,7 +6,7 @@ import SelectOption from './SelectOption';
 import Model from './Model';
 import NocoCache from '../cache/NocoCache';
 import {
-  AllowedColumnTypesForQrCode,
+  AllowedColumnTypesForQrAndBarcodes,
   ColumnReqType,
   ColumnType,
   ColumnVisibilityRulesType,
@@ -26,6 +26,8 @@ import Filter from './Filter';
 import addFormulaErrorIfMissingColumn from '../meta/helpers/addFormulaErrorIfMissingColumn';
 import { NcError } from '../meta/helpers/catchError';
 import QrCodeColumn from './QrCodeColumn';
+import BarcodeColumn from './BarcodeColumn';
+import { extractProps } from '../meta/helpers/extractProps';
 
 export default class Column<T = any> implements ColumnType {
   public fk_model_id: string;
@@ -111,43 +113,58 @@ export default class Column<T = any> implements ColumnType {
   ) {
     if (!column.fk_model_id) NcError.badRequest('Missing model id');
 
-    const insertObj: any = {
-      id: column?.id,
-      fk_model_id: column.fk_model_id,
-      column_name: column.column_name || column.cn,
-      title: column.title || column._cn,
-      uidt: column.uidt,
-      dt: column.dt,
-      np: column.np,
-      ns: column.ns,
-      clen: column.clen,
-      cop: column.cop,
-      pk: column.pk,
-      rqd: column.rqd,
-      un: column.un,
-      ct: column.ct,
-      ai: column.ai,
-      unique: column.unique,
-      cdf: column.cdf,
-      cc: column.cc,
-      csn: column.csn,
-      dtx: column.dtx,
-      dtxp: column.dtxp,
-      dtxs: column.dtxs,
-      au: column.au,
-      pv: column.pv,
-      order: column.order,
-      project_id: column.project_id,
-      base_id: column.base_id,
-      system: column.system,
-      meta:
-        column.meta && typeof column.meta === 'object'
-          ? JSON.stringify(column.meta)
-          : column.meta,
-      visibility_rules: JSON.stringify(column.visibility_rules ?? {}),
-      public: column.public === true,
-    };
+    // TODO: fix type
+    const insertObj = extractProps(column as any, [
+      'id',
+      'fk_model_id',
+      'column_name',
+      'title',
+      'uidt',
+      'dt',
+      'np',
+      'ns',
+      'clen',
+      'cop',
+      'pk',
+      'rqd',
+      'un',
+      'ct',
+      'ai',
+      'unique',
+      'cdf',
+      'cc',
+      'csn',
+      'dtx',
+      'dtxp',
+      'dtxs',
+      'au',
+      'pv',
+      'order',
+      'project_id',
+      'base_id',
+      'system',
+      'meta',
+      'visibility_rules',
+      'public',
+    ]);
 
+    if (!insertObj.column_name) {
+      insertObj.column_name = column.cn;
+    }
+
+    if (!insertObj.title) {
+      insertObj.title = column._cn;
+    }
+
+    if (insertObj.meta && typeof insertObj.meta === 'object') {
+      insertObj.meta = JSON.stringify(insertObj.meta);
+    }
+    if (
+      insertObj.visibility_rules &&
+      typeof insertObj.visibility_rules === 'object'
+    ) {
+      insertObj.visibility_rules = JSON.stringify(insertObj.visibility_rules);
+    }
     if (column.validate) {
       if (typeof column.validate === 'string')
         insertObj.validate = column.validate;
@@ -258,6 +275,17 @@ export default class Column<T = any> implements ColumnType {
           {
             fk_column_id: colId,
             fk_qr_value_column_id: column.fk_qr_value_column_id,
+          },
+          ncMeta
+        );
+        break;
+      }
+      case UITypes.Barcode: {
+        await BarcodeColumn.insert(
+          {
+            fk_column_id: colId,
+            fk_barcode_value_column_id: column.fk_barcode_value_column_id,
+            barcode_format: column.barcode_format,
           },
           ncMeta
         );
@@ -442,6 +470,9 @@ export default class Column<T = any> implements ColumnType {
       case UITypes.QrCode:
         res = await QrCodeColumn.read(this.id, ncMeta);
         break;
+      case UITypes.Barcode:
+        res = await BarcodeColumn.read(this.id, ncMeta);
+        break;
       // default:
       //   res = await DbColumn.read(this.id);
       //   break;
@@ -618,6 +649,20 @@ export default class Column<T = any> implements ColumnType {
       }
     }
 
+    {
+      const barcodeCols = await ncMeta.metaList2(
+        null,
+        null,
+        MetaTable.COL_BARCODE,
+        {
+          condition: { fk_barcode_value_column_id: id },
+        }
+      );
+      for (const barcodeCol of barcodeCols) {
+        await Column.delete(barcodeCol.fk_column_id, ncMeta);
+      }
+    }
+
     // get lookup columns and delete
     {
       let lookups = await NocoCache.getList(CacheScope.COL_LOOKUP, [id]);
@@ -756,6 +801,10 @@ export default class Column<T = any> implements ColumnType {
         colOptionTableName = MetaTable.COL_QRCODE;
         cacheScopeName = CacheScope.COL_QRCODE;
         break;
+      case UITypes.Barcode:
+        colOptionTableName = MetaTable.COL_BARCODE;
+        cacheScopeName = CacheScope.COL_BARCODE;
+        break;
     }
 
     if (colOptionTableName && cacheScopeName) {
@@ -868,7 +917,11 @@ export default class Column<T = any> implements ColumnType {
     );
   }
 
-  static async update(colId: string, column: any, ncMeta = Noco.ncMeta) {
+  static async update(
+    colId: string,
+    column: Partial<Column>,
+    ncMeta = Noco.ncMeta
+  ) {
     const oldCol = await Column.get({ colId }, ncMeta);
 
     switch (oldCol.uidt) {
@@ -933,6 +986,19 @@ export default class Column<T = any> implements ColumnType {
         break;
       }
 
+      case UITypes.Barcode: {
+        await ncMeta.metaDelete(null, null, MetaTable.COL_BARCODE, {
+          fk_column_id: colId,
+        });
+
+        await NocoCache.deepDel(
+          CacheScope.COL_BARCODE,
+          `${CacheScope.COL_BARCODE}:${colId}`,
+          CacheDelDirection.CHILD_TO_PARENT
+        );
+        break;
+      }
+
       case UITypes.MultiSelect:
       case UITypes.SingleSelect: {
         await ncMeta.metaDelete(null, null, MetaTable.COL_SELECT_OPTIONS, {
@@ -947,36 +1013,35 @@ export default class Column<T = any> implements ColumnType {
         break;
       }
     }
-    const updateObj = {
-      column_name: column.column_name,
-      title: column.title,
-      uidt: column.uidt,
-      dt: column.dt,
-      np: column.np,
-      ns: column.ns,
-      clen: column.clen,
-      cop: column.cop,
-      pk: column.pk,
-      rqd: column.rqd,
-      un: column.un,
-      ct: column.ct,
-      ai: column.ai,
-      unique: column.unique,
-      cdf: column.cdf,
-      cc: column.cc,
-      csn: column.csn,
-      dtx: column.dtx,
-      dtxp: column.dtxp,
-      dtxs: column.dtxs,
-      au: column.au,
-      pv: column.pv,
-      system: column.system,
-      validate: null,
-      meta: column.meta,
-      visibility_rules: JSON.stringify(
-        column.visibility_rules ?? oldCol.visibility_rules ?? {}
-      ),
-    };
+
+    const updateObj = extractProps(column, [
+      'column_name',
+      'title',
+      'uidt',
+      'dt',
+      'np',
+      'ns',
+      'clen',
+      'cop',
+      'pk',
+      'rqd',
+      'un',
+      'ct',
+      'ai',
+      'unique',
+      'cdf',
+      'cc',
+      'csn',
+      'dtx',
+      'dtxp',
+      'dtxs',
+      'au',
+      'pv',
+      'system',
+      'validate',
+      'meta',
+      'visibility_rules',
+    ]);
 
     if (column.validate) {
       if (typeof column.validate === 'string')
@@ -985,7 +1050,7 @@ export default class Column<T = any> implements ColumnType {
     }
 
     // get qr code columns and delete if target type is not supported by QR code column type
-    if (!AllowedColumnTypesForQrCode.includes(updateObj.uidt)) {
+    if (!AllowedColumnTypesForQrAndBarcodes.includes(updateObj.uidt)) {
       const qrCodeCols = await ncMeta.metaList2(
         null,
         null,
@@ -994,8 +1059,19 @@ export default class Column<T = any> implements ColumnType {
           condition: { fk_qr_value_column_id: colId },
         }
       );
+      const barcodeCols = await ncMeta.metaList2(
+        null,
+        null,
+        MetaTable.COL_BARCODE,
+        {
+          condition: { fk_barcode_value_column_id: colId },
+        }
+      );
       for (const qrCodeCol of qrCodeCols) {
         await Column.delete(qrCodeCol.fk_column_id, ncMeta);
+      }
+      for (const barcodeCol of barcodeCols) {
+        await Column.delete(barcodeCol.fk_column_id, ncMeta);
       }
     }
 
@@ -1018,6 +1094,11 @@ export default class Column<T = any> implements ColumnType {
           updateObj.meta && typeof updateObj.meta === 'object'
             ? JSON.stringify(updateObj.meta)
             : updateObj.meta,
+        visibility_rules:
+          updateObj.visibility_rules &&
+          typeof updateObj.visibility_rules === 'object'
+            ? JSON.stringify(updateObj.visibility_rules)
+            : updateObj.visibility_rules,
       },
       colId
     );
@@ -1128,5 +1209,18 @@ export default class Column<T = any> implements ColumnType {
       },
       colId
     );
+  }
+
+  static getMaxColumnNameLength(sqlClientType: string) {
+    // no limit for sqlite but set as 255
+    let fieldLengthLimit = 255;
+    if (sqlClientType === 'mysql2' || sqlClientType === 'mysql') {
+      fieldLengthLimit = 64;
+    } else if (sqlClientType === 'pg') {
+      fieldLengthLimit = 59;
+    } else if (sqlClientType === 'mssql') {
+      fieldLengthLimit = 128;
+    }
+    return fieldLengthLimit;
   }
 }

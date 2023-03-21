@@ -24,6 +24,7 @@ import hookTests from './tests/hook.test';
 import HookFilterTests from './tests/hookFilter.test';
 import chai from 'chai';
 chai.use(require('chai-subset'));
+import filterTest from './tests/filter.test';
 
 function restTests() {
   authTests();
@@ -49,6 +50,7 @@ function restTests() {
   FilterTests();
   hookTests();
   HookFilterTests();
+  filterTest();
 }
 
 export default function () {

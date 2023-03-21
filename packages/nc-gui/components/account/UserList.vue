@@ -71,7 +71,7 @@ const deleteUser = async (userId: string) => {
   Modal.confirm({
     title: 'Are you sure you want to delete this user?',
     type: 'warn',
-    content: 'On deleting, user will remove from organization and any sync source(Airtable) created by user will get removed',
+    content: 'Upon deletion, the user will be removed from the installation.',
     onOk: async () => {
       try {
         await api.orgUsers.delete(userId)
@@ -99,13 +99,16 @@ const resendInvite = async (user: User) => {
   $e('a:org-user:resend-invite')
 }
 
-const copyInviteUrl = (user: User) => {
+const copyInviteUrl = async (user: User) => {
   if (!user.invite_token) return
+  try {
+    await copy(`${dashboardUrl}#/signup/${user.invite_token}`)
 
-  copy(`${dashboardUrl}#/signup/${user.invite_token}`)
-
-  // Invite URL copied to clipboard
-  message.success(t('msg.success.inviteURLCopied'))
+    // Invite URL copied to clipboard
+    message.success(t('msg.success.inviteURLCopied'))
+  } catch (e) {
+    message.error(e.message)
+  }
   $e('c:user:copy-url')
 }
 
@@ -113,7 +116,7 @@ const copyPasswordResetUrl = async (user: User) => {
   try {
     const { reset_password_url } = await api.orgUsers.generatePasswordResetToken(user.id)
 
-    copy(reset_password_url)
+    await copy(reset_password_url!)
 
     // Invite URL copied to clipboard
     message.success(t('msg.success.passwordResetURLCopied'))

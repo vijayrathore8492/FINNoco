@@ -5,8 +5,11 @@ import {
   CellValueInj,
   ColumnInj,
   IsFormInj,
+  IsGridInj,
   RowInj,
+  SaveRowInj,
   inject,
+  isBarcode,
   isBt,
   isCount,
   isFormula,
@@ -24,11 +27,11 @@ import { NavigateDir } from '~/lib'
 const props = defineProps<{
   column: ColumnType
   modelValue: any
-  row: Row
+  row?: Row
   active?: boolean
 }>()
 
-const emit = defineEmits(['update:modelValue', 'navigate'])
+const emit = defineEmits(['update:modelValue', 'navigate', 'save'])
 
 const column = toRef(props, 'column')
 const active = toRef(props, 'active', false)
@@ -38,8 +41,12 @@ provide(ColumnInj, column)
 provide(ActiveCellInj, active)
 provide(RowInj, row)
 provide(CellValueInj, toRef(props, 'modelValue'))
+provide(SaveRowInj, () => emit('save'))
+
+const isGrid = inject(IsGridInj, ref(false))
 
 const isForm = inject(IsFormInj, ref(false))
+
 function onNavigate(dir: NavigateDir, e: KeyboardEvent) {
   emit('navigate', dir)
 
@@ -49,7 +56,8 @@ function onNavigate(dir: NavigateDir, e: KeyboardEvent) {
 
 <template>
   <div
-    class="nc-virtual-cell w-full"
+    class="nc-virtual-cell w-full flex items-center"
+    :class="{ 'text-right justify-end': isGrid && !isForm && isRollup(column) }"
     @keydown.enter.exact="onNavigate(NavigateDir.NEXT, $event)"
     @keydown.shift.enter.exact="onNavigate(NavigateDir.PREV, $event)"
   >
@@ -59,6 +67,7 @@ function onNavigate(dir: NavigateDir, e: KeyboardEvent) {
     <LazyVirtualCellRollup v-else-if="isRollup(column)" />
     <LazyVirtualCellFormula v-else-if="isFormula(column)" />
     <LazyVirtualCellQrCode v-else-if="isQrCode(column)" />
+    <LazyVirtualCellBarcode v-else-if="isBarcode(column)" />
     <LazyVirtualCellCount v-else-if="isCount(column)" />
     <LazyVirtualCellLookup v-else-if="isLookup(column)" />
   </div>

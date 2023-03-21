@@ -13,8 +13,8 @@ server.set('view engine', 'ejs');
 
 
 (async () => {
-  const httpServer = server.listen(process.env.PORT || 8080, () => {
-    console.log(`App started successfully.\nVisit -> ${Noco.dashboardUrl}`);
+  const httpServer = server.listen(process.env.PORT || 8080, async () => {
+    server.use(await Noco.init({}, httpServer, server));
   })
 
   const keepAliveTimeoutSeconds = parseInt(process.env.NC_KEEP_ALIVE_TIMEOUT_SECONDS);
@@ -22,5 +22,3 @@ server.set('view engine', 'ejs');
 
   server.use(await Noco.init({}, httpServer, server));
 })().catch(e => console.log(e))
-
-

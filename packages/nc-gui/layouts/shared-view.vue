@@ -1,8 +1,10 @@
 <script lang="ts" setup>
 import { navigateTo, useEventListener, useRouter, useSharedView } from '#imports'
 import NocoHeaderLogo from '~/components/general/NocoHeaderLogo'
-const { isLoading } = useGlobal()
+const { isLoading, appInfo } = useGlobal()
+
 const { sharedView } = useSharedView()
+
 const router = useRouter()
 
 onMounted(() => {
@@ -54,7 +56,8 @@ export default {
                 <MdiReload :class="{ 'animate-infinite animate-spin ': isLoading }" />
               </template>
 
-              <div v-else class="text-xl font-semibold truncate text-white nc-shared-view-title">
+              <div v-else class="text-xl font-semibold truncate text-white nc-shared-view-title flex gap-2 items-center">
+                <GeneralViewIcon v-if="sharedView" class="!text-xl" :meta="sharedView" />
                 {{ sharedView?.title }}
               </div>
             </div>

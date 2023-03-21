@@ -7,6 +7,12 @@ import { SharedFormPage } from '../../../SharedForm';
 import { CheckboxCellPageObject } from './CheckboxCell';
 import { RatingCellPageObject } from './RatingCell';
 import { DateCellPageObject } from './DateCell';
+import { DateTimeCellPageObject } from './DateTimeCell';
+
+export interface CellProps {
+  index?: number;
+  columnHeader: string;
+}
 
 export interface CellProps {
   index?: number;
@@ -20,6 +26,7 @@ export class CellPageObject extends BasePage {
   readonly checkbox: CheckboxCellPageObject;
   readonly rating: RatingCellPageObject;
   readonly date: DateCellPageObject;
+  readonly dateTime: DateTimeCellPageObject;
 
   constructor(parent: GridPage | SharedFormPage) {
     super(parent.rootPage);
@@ -29,6 +36,7 @@ export class CellPageObject extends BasePage {
     this.checkbox = new CheckboxCellPageObject(this);
     this.rating = new RatingCellPageObject(this);
     this.date = new DateCellPageObject(this);
+    this.dateTime = new DateTimeCellPageObject(this);
   }
 
   get({ index, columnHeader }: CellProps): Locator {
@@ -53,13 +61,26 @@ export class CellPageObject extends BasePage {
       index,
       columnHeader,
     });
-    await this.get({ index, columnHeader }).locator('input').fill(text);
+    const isInputBox = async () => (await this.get({ index, columnHeader }).locator('input').count()) > 0;
+
+    for (let i = 0; i < 10; i++) {
+      if (await isInputBox()) {
+        break;
+      }
+      await this.rootPage.waitForTimeout(200);
+    }
+
+    if (await isInputBox()) {
+      await this.get({ index, columnHeader }).locator('input').fill(text);
+    } else {
+      await this.get({ index, columnHeader }).locator('textarea').fill(text);
+    }
   }
 
   async inCellExpand({ index, columnHeader }: CellProps) {
     await this.get({ index, columnHeader }).hover();
     await this.waitForResponse({
-      uiAction: this.get({ index, columnHeader }).locator('.nc-action-icon >> nth=0').click(),
+      uiAction: () => this.get({ index, columnHeader }).locator('.nc-action-icon >> nth=0').click(),
       requestUrlPathToMatch: '/api/v1/db/data/noco/',
       httpMethodsToMatch: ['GET'],
     });
@@ -80,15 +101,37 @@ export class CellPageObject extends BasePage {
 
   async verify({ index, columnHeader, value }: CellProps & { value: string | string[] }) {
     const _verify = async text => {
-      await expect
-        .poll(async () => {
-          const innerTexts = await this.get({
-            index,
-            columnHeader,
-          }).allInnerTexts();
-          return typeof innerTexts === 'string' ? [innerTexts] : innerTexts;
-        })
-        .toContain(text);
+      // await expect
+      //   .poll(async () => {
+      //     const innerTexts = await this.get({
+      //       index,
+      //       columnHeader,
+      //     }).allInnerTexts();
+      //     return typeof innerTexts === 'string' ? [innerTexts] : innerTexts;
+      //   })
+      //   .toContain(text);
+
+      // retrieve text from cell
+      // loop for 5 seconds
+      // if text is found, return
+      // if text is not found, throw error
+      let count = 0;
+      while (count < 5) {
+        const innerTexts = await this.get({
+          index,
+          columnHeader,
+        }).allInnerTexts();
+        const cellText = typeof innerTexts === 'string' ? [innerTexts] : innerTexts;
+
+        if (cellText) {
+          if (cellText?.includes(text) || cellText[0]?.includes(text)) {
+            return;
+          }
+        }
+        await this.rootPage.waitForTimeout(1000);
+        count++;
+        if (count === 5) throw new Error(`Cell text ${text} not found`);
+      }
     };
 
     if (Array.isArray(value)) {
@@ -98,6 +141,22 @@ export class CellPageObject extends BasePage {
     } else {
       await _verify(value);
     }
+  }
+
+  async verifyDateCell({ index, columnHeader, value }: { index: number; columnHeader: string; value: string }) {
+    const _verify = async expectedValue => {
+      await expect
+        .poll(async () => {
+          const cell = await this.get({
+            index,
+            columnHeader,
+          }).locator('input');
+          return await cell.getAttribute('title');
+        })
+        .toEqual(expectedValue);
+    };
+
+    await _verify(value);
   }
 
   async verifyQrCodeCell({
@@ -122,6 +181,48 @@ export class CellPageObject extends BasePage {
     };
 
     await _verify(expectedSrcValue);
+  }
+
+  async verifyBarcodeCellShowsInvalidInputMessage({ index, columnHeader }: { index: number; columnHeader: string }) {
+    const _verify = async expectedInvalidInputMessage => {
+      await expect
+        .poll(async () => {
+          const barcodeCell = await this.get({
+            index,
+            columnHeader,
+          });
+          const barcodeInvalidInputMessage = await barcodeCell.getByTestId('barcode-invalid-input-message');
+          return await barcodeInvalidInputMessage.textContent();
+        })
+        .toEqual(expectedInvalidInputMessage);
+    };
+
+    await _verify('Barcode error - please check compatibility between input and barcode type');
+  }
+
+  async verifyBarcodeCell({
+    index,
+    columnHeader,
+    expectedSvgValue,
+  }: {
+    index: number;
+    columnHeader: string;
+    expectedSvgValue: string;
+  }) {
+    const _verify = async expectedBarcodeSvg => {
+      await expect
+        .poll(async () => {
+          const barcodeCell = await this.get({
+            index,
+            columnHeader,
+          });
+          const barcodeSvg = await barcodeCell.getByTestId('barcode');
+          return await barcodeSvg.innerHTML();
+        })
+        .toEqual(expectedBarcodeSvg);
+    };
+
+    await _verify(expectedSvgValue);
   }
 
   // todo: Improve param names (i.e value => values)
@@ -187,8 +288,10 @@ export class CellPageObject extends BasePage {
 
   async copyToClipboard({ index, columnHeader }: CellProps, ...clickOptions: Parameters<Locator['click']>) {
     await this.get({ index, columnHeader }).click(...clickOptions);
+    await (await this.get({ index, columnHeader }).elementHandle()).waitForElementState('stable');
 
     await this.get({ index, columnHeader }).press((await this.isMacOs()) ? 'Meta+C' : 'Control+C');
+    await this.verifyToast({ message: 'Copied to clipboard' });
   }
 
   async selectRange({ start, end }: { start: CellProps; end: CellProps }) {

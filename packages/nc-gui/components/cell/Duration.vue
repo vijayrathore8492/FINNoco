@@ -13,11 +13,14 @@ import {
 
 interface Props {
   modelValue: number | string | null | undefined
+  showValidationError: boolean
 }
 
-const { modelValue } = defineProps<Props>()
+const { modelValue, showValidationError = true } = defineProps<Props>()
 
 const emit = defineEmits(['update:modelValue'])
+
+const { showNull } = useGlobal()
 
 const column = inject(ColumnInj)
 
@@ -93,9 +96,11 @@ const focus: VNodeRef = (el) => (el as HTMLInputElement)?.focus()
       @mousedown.stop
     />
 
+    <span v-else-if="modelValue === null && showNull" class="nc-null">NULL</span>
+
     <span v-else> {{ localState }}</span>
 
-    <div v-if="showWarningMessage" class="duration-warning">
+    <div v-if="showWarningMessage && showValidationError" class="duration-warning">
       <!-- TODO: i18n -->
       Please enter a number
     </div>

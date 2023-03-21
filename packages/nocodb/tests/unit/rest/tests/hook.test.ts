@@ -18,7 +18,7 @@ function HookTests() {
     table = await createTable(context, project);
     hook = await createHook({ 
       fk_model_id: table.id, 
-      event: 'After', 
+      event: 'after', 
       operation: 'insert', 
       title: 'HooksTests', 
       notification: '{"type":"URL", "payload":{"path":"http://www.google.com"}}' 
@@ -41,19 +41,19 @@ function HookTests() {
             fk_model_id: table.id,
             title: "HooksTests",
             description: null,
-            env: null,
+            env: "all",
             type: null,
             event: "after",
             operation: "insert",
-            async: null,
-            payload: 0,
+            async: 0,
+            payload: 1,
             url: null,
             headers: null,
-            condition: null,
-            retries: null,
-            retry_interval: null,
-            timeout: null,
-            active: null
+            condition: 0,
+            retries: 0,
+            retry_interval: 60000,
+            timeout: 60000,
+            active: 1
           },
         ],
       })
@@ -101,20 +101,20 @@ function HookTests() {
         fk_model_id: table.id,
         title: "CreateHookTests",
         description: null,
-        env: null,
+        env: "all",
         type: null,
         event: "after",
         operation: "update",
-        async: null,
-        payload: 0,
+        async: 0,
+        payload: 1,
         url: null,
         headers: null,
-        condition: null,
+        condition: 0,
         notification: "{\"type\":\"URL\", \"payload\":{\"path\":\"http://www.finn.auto\"}}",
-        retries: null,
-        retry_interval: null,
-        timeout: null,
-        active: null,
+        retries: 0,
+        retry_interval: 60000,
+        timeout: 60000,
+        active: 1,
       })
     });
   })
@@ -159,7 +159,7 @@ function HookTests() {
   
       expect(response.body).to.containSubset({
         Id: 1,
-        Title: "Text",
+        Title: "Sample Text",
       });
     });
   })

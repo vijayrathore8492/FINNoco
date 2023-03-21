@@ -3,19 +3,17 @@ import { CacheGetType, CacheScope, MetaTable } from '../utils/globals';
 import GridViewColumn from './GridViewColumn';
 import View from './View';
 import NocoCache from '../cache/NocoCache';
+import { extractProps } from '../meta/helpers/extractProps';
 
 export default class GridView {
-  title: string;
-  show: boolean;
-  is_default: boolean;
-  order: number;
-
   fk_view_id: string;
-
-  columns?: GridViewColumn[];
-
   project_id?: string;
   base_id?: string;
+
+  meta?: string;
+  row_height?: number;
+
+  columns?: GridViewColumn[];
 
   constructor(data: GridView) {
     Object.assign(this, data);
@@ -43,13 +41,15 @@ export default class GridView {
   }
 
   static async insert(view: Partial<GridView>, ncMeta = Noco.ncMeta) {
-    const insertObj = {
-      fk_view_id: view.fk_view_id,
-      project_id: view.project_id,
-      base_id: view.base_id,
-    };
-    if (!(view.project_id && view.base_id)) {
-      const viewRef = await View.get(view.fk_view_id, ncMeta);
+    const insertObj = extractProps(view, [
+      'fk_view_id',
+      'project_id',
+      'base_id',
+      'row_height',
+    ]);
+
+    if (!(insertObj.project_id && insertObj.base_id)) {
+      const viewRef = await View.get(insertObj.fk_view_id, ncMeta);
       insertObj.project_id = viewRef.project_id;
       insertObj.base_id = viewRef.base_id;
     }
@@ -62,5 +62,25 @@ export default class GridView {
   static async getWithInfo(id: string, ncMeta = Noco.ncMeta) {
     const view = await this.get(id, ncMeta);
     return view;
+  }
+
+  static async update(
+    viewId: string,
+    body: Partial<GridView>,
+    ncMeta = Noco.ncMeta
+  ) {
+    // get existing cache
+    const key = `${CacheScope.GRID_VIEW}:${viewId}`;
+    let o = await NocoCache.get(key, CacheGetType.TYPE_OBJECT);
+    const updateObj = extractProps(body, ['row_height']);
+    if (o) {
+      o = { ...o, ...updateObj };
+      // set cache
+      await NocoCache.set(key, o);
+    }
+    // update meta
+    return await ncMeta.metaUpdate(null, null, MetaTable.GRID_VIEW, updateObj, {
+      fk_view_id: viewId,
+    });
   }
 }

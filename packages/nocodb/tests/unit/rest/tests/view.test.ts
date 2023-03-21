@@ -46,7 +46,7 @@ function ViewTests() {
             password: null,
             show: 1,
             order: 1,
-            meta: null,
+            meta: {},
             view: {
               project_id: project.id,
               uuid: null,
@@ -89,7 +89,7 @@ function ViewTests() {
         password: null,
         show: 1,
         order: 2,
-        meta: null,
+        meta: {},
       })
     });
   })

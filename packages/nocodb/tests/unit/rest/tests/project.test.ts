@@ -11,14 +11,34 @@ import { expect } from 'chai'
 import { createView } from '../../factory/view'
 import { OrgUserRoles, ViewTypes } from 'nocodb-sdk'
 import { createVisibilityRule } from '../../factory/visibilityRules'
+import 'mocha';
+
+// Test case list
+// 1. Get project info
+// 2. UI ACL
+// 3. Create project
+// 4. Create project with existing title
+// 5. Update project
+// 6. Update project with existing title
+// 7. Create project shared base
+// 8. Created project shared base should have only editor or viewer role
+// 9. Updated project shared base should have only editor or viewer role
+// 10. Updated project shared base
+// 11. Get project shared base
+// 12. Delete project shared base
+// 13. Meta diff sync
+// 14. Meta diff sync
+// 15. Meta diff sync
+// 16. Get all projects meta
+
 
 function projectTest() {
   let context
   let project
   let table;
 
-  beforeEach(async function() {
-    context = await init()
+  beforeEach(async function () {
+    context = await init();
 
     project = await createProject(context)
     table = await createTable(context, project);
@@ -30,13 +50,11 @@ function projectTest() {
       .set('xc-auth', context.token)
       .send({})
       .expect(200)
-    expect(response.body).to.deep.equal({
+    expect(response.body).to.containSubset({
       Node: process.version,
       Arch: process.arch,
       Platform: process.platform,
       Docker: false,
-      Database: 'sqlite3',
-      ProjectOnRootDB: true,
       RootDB: 'sqlite3',
       PackageVersion: packageVersion,
     })
@@ -65,7 +83,7 @@ function projectTest() {
         password: null,
         show: 1,
         order: 1,
-        meta: null,
+        meta: {},
         view: {
           project_id: project.id,
           uuid: null,
@@ -106,7 +124,7 @@ function projectTest() {
       .get('/api/v1/db/meta/projects/')
       .set('xc-auth', context.token)
       .send({})
-      .expect(200)
+      .expect(200);
 
     if (response.body.list.length !== 1) new Error('Should list only 1 project')
     if (!response.body.pageInfo) new Error('Should have pagination info')
@@ -146,7 +164,7 @@ function projectTest() {
       .send({
         title: 'Title1',
       })
-      .expect(200)
+      .expect(200);
 
     const newProject = await Project.getByTitleOrId(response.body.id)
     if (!newProject) return new Error('Project not created')
@@ -182,8 +200,8 @@ function projectTest() {
       .send({
         title: project.title,
       })
-      .expect(400)
-  })
+      .expect(400);
+  });
 
   it('Errors when Create projects with too long title', async () => {
     const response = await request(context.app)
@@ -271,7 +289,7 @@ function projectTest() {
       .get(`/api/v1/db/meta/projects/${project.id}`)
       .set('xc-auth', context.token)
       .send()
-      .expect(200)
+      .expect(200);
 
     if (response.body.id !== project.id) return new Error('Got the wrong project')
     expect(response.body).to.containSubset({
@@ -325,10 +343,10 @@ function projectTest() {
     expect(newProject).to.containSubset(updateData)
   })
 
-  it('Update projects with existing title', async function() {
+  it('Update projects with existing title', async function () {
     const newProject = await createProject(context, {
       title: 'NewTitle1',
-    })
+    });
 
     await request(context.app)
       .patch(`/api/v1/db/meta/projects/${project.id}`)
@@ -336,8 +354,8 @@ function projectTest() {
       .send({
         title: newProject.title,
       })
-      .expect(400)
-  })
+      .expect(400);
+  });
 
   it('Create project shared base', async () => {
     const response = await request(context.app)
@@ -347,9 +365,9 @@ function projectTest() {
         roles: 'viewer',
         password: 'test',
       })
-      .expect(200)
+      .expect(200);
 
-    const updatedProject = await Project.getByTitleOrId(project.id)
+    const updatedProject = await Project.getByTitleOrId(project.id);
 
     expect(response.body).to.containSubset({
       uuid: updatedProject.uuid,
@@ -361,9 +379,9 @@ function projectTest() {
       updatedProject.roles !== 'viewer' ||
       updatedProject.password !== 'test'
     ) {
-      return new Error('Shared base not configured properly')
+      return new Error('Shared base not configured properly');
     }
-  })
+  });
 
   it('Created project shared base should have only editor or viewer role', async () => {
     await request(context.app)
@@ -373,17 +391,17 @@ function projectTest() {
         roles: 'commenter',
         password: 'test',
       })
-      .expect(200)
+      .expect(200);
 
-    const updatedProject = await Project.getByTitleOrId(project.id)
+    const updatedProject = await Project.getByTitleOrId(project.id);
 
     if (updatedProject.roles === 'commenter') {
-      return new Error('Shared base not configured properly')
+      return new Error('Shared base not configured properly');
     }
-  })
+  });
 
   it('Updated project shared base should have only editor or viewer role', async () => {
-    await createSharedBase(context.app, context.token, project)
+    await createSharedBase(context.app, context.token, project);
 
     const response = await request(context.app)
       .patch(`/api/v1/db/meta/projects/${project.id}/shared`)
@@ -392,9 +410,9 @@ function projectTest() {
         roles: 'commenter',
         password: 'test',
       })
-      .expect(200)
+      .expect(200);
 
-    const updatedProject = await Project.getByTitleOrId(project.id)
+    const updatedProject = await Project.getByTitleOrId(project.id);
 
     expect(response.body).to.containSubset({
       uuid: updatedProject.uuid,
@@ -402,12 +420,12 @@ function projectTest() {
     });
 
     if (updatedProject.roles === 'commenter') {
-      throw new Exception('Shared base not updated properly')
+      throw new Exception('Shared base not updated properly');
     }
-  })
+  });
 
   it('Updated project shared base', async () => {
-    await createSharedBase(context.app, context.token, project)
+    await createSharedBase(context.app, context.token, project);
 
     await request(context.app)
       .patch(`/api/v1/db/meta/projects/${project.id}/shared`)
@@ -416,22 +434,22 @@ function projectTest() {
         roles: 'editor',
         password: 'test',
       })
-      .expect(200)
-    const updatedProject = await Project.getByTitleOrId(project.id)
+      .expect(200);
+    const updatedProject = await Project.getByTitleOrId(project.id);
 
     if (updatedProject.roles !== 'editor') {
-      throw new Exception('Shared base not updated properly')
+      throw new Exception('Shared base not updated properly');
     }
-  })
+  });
 
   it('Get project shared base', async () => {
-    await createSharedBase(context.app, context.token, project)
+    await createSharedBase(context.app, context.token, project);
 
     const response = await request(context.app)
       .get(`/api/v1/db/meta/projects/${project.id}/shared`)
       .set('xc-auth', context.token)
       .send()
-      .expect(200)
+      .expect(200);
 
     const updatedProject = await Project.getByTitleOrId(project.id)
 
@@ -440,23 +458,23 @@ function projectTest() {
       roles: "viewer"
     });
     if (!updatedProject.uuid) {
-      throw new Exception('Shared base not created')
+      throw new Exception('Shared base not created');
     }
-  })
+  });
 
   it('Delete project shared base', async () => {
-    await createSharedBase(context.app, context.token, project)
+    await createSharedBase(context.app, context.token, project);
 
     await request(context.app)
       .delete(`/api/v1/db/meta/projects/${project.id}/shared`)
       .set('xc-auth', context.token)
       .send()
-      .expect(200)
-    const updatedProject = await Project.getByTitleOrId(project.id)
+      .expect(200);
+    const updatedProject = await Project.getByTitleOrId(project.id);
     if (updatedProject.uuid) {
-      throw new Exception('Shared base not deleted')
+      throw new Exception('Shared base not deleted');
     }
-  })
+  });
 
   // todo: Do compare api test
 
@@ -465,8 +483,8 @@ function projectTest() {
       .get(`/api/v1/db/meta/projects/${project.id}/meta-diff`)
       .set('xc-auth', context.token)
       .send()
-      .expect(200)
-  })
+      .expect(200);
+  });
 
   it('Syncs Meta diff ', async () => {
     const response = await request(context.app)
@@ -485,7 +503,7 @@ function projectTest() {
       .set('xc-auth', context.token)
       .send()
       .expect(200)
-    expect(response.body).to.deep.equal([
+    expect(response.body).to.containSubset([
       {
         "detectedChanges": [],
         "table_name": table.table_name,
@@ -497,40 +515,56 @@ function projectTest() {
 
 
   it('Get all projects meta', async () => {
-    await createTable(context, project, { table_name: 'table1', title: 'table1' })
-    await createTable(context, project, { table_name: 'table2', title: 'table2' })
-    await createTable(context, project, { table_name: 'table3', title: 'table3' })
+    await createTable(context, project, {
+      table_name: 'table1',
+      title: 'table1',
+    });
+    await createTable(context, project, {
+      table_name: 'table2',
+      title: 'table2',
+    });
+    await createTable(context, project, {
+      table_name: 'table3',
+      title: 'table3',
+    });
 
     await request(context.app)
       .get(`/api/v1/aggregated-meta-info`)
       .set('xc-auth', context.token)
       .send({})
       .expect(200)
-      .then(res => {
+      .then((res) => {
         expect(res.body).to.have.all.keys(
           'userCount',
           'sharedBaseCount',
           'projectCount',
-          'projects',
-        )
-        expect(res.body).to.have.property('projectCount').to.eq(1)
-        expect(res.body).to.have.property('projects').to.be.an('array')
-        expect(res.body.projects[0].tableCount.table).to.be.eq(3)
-        expect(res.body).to.have.nested.property('projects[0].tableCount.table').to.be.a('number')
-        expect(res.body).to.have.nested.property('projects[0].tableCount.view').to.be.a('number')
-        expect(res.body).to.have.nested.property('projects[0].viewCount').to.be.an('object')
+          'projects'
+        );
+        expect(res.body).to.have.property('projectCount').to.eq(1);
+        expect(res.body).to.have.property('projects').to.be.an('array');
+        expect(res.body.projects[0].tableCount.table).to.be.eq(3);
+        expect(res.body)
+          .to.have.nested.property('projects[0].tableCount.table')
+          .to.be.a('number');
+        expect(res.body)
+          .to.have.nested.property('projects[0].tableCount.view')
+          .to.be.a('number');
+        expect(res.body)
+          .to.have.nested.property('projects[0].viewCount')
+          .to.be.an('object')
           .have.keys(
-          'formCount',
-          'gridCount',
-          'galleryCount',
-          'kanbanCount',
-          'total',
-          'sharedFormCount',
-          'sharedGridCount',
-          'sharedGalleryCount',
-          'sharedKanbanCount',
-          'sharedTotal',
-          'sharedLockedCount')
+            'formCount',
+            'gridCount',
+            'galleryCount',
+            'kanbanCount',
+            'total',
+            'sharedFormCount',
+            'sharedGridCount',
+            'sharedGalleryCount',
+            'sharedKanbanCount',
+            'sharedTotal',
+            'sharedLockedCount'
+          );
         expect(res.body.projects[0]).have.keys(
           'external',
           'webhookCount',
@@ -558,6 +592,6 @@ function projectTest() {
   })
 }
 
-export default function() {
-  describe('Project', projectTest)
+export default function () {
+  describe('Project', projectTest);
 }

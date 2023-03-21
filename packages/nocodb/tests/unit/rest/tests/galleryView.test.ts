@@ -33,7 +33,7 @@ function GalleryViewTests() {
         "fk_model_id": table.id,
         "is_default": null,
         "lock_type": "collaborative",
-        "meta": null,
+        "meta": {},
         "order": 3,
         "password": null,
         "project_id": project.id,

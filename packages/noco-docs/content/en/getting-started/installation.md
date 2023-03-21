@@ -14,18 +14,6 @@ Simple installation - takes about three minutes!
     
 ## Quick try
 
-### Heroku
-
-Before doing so, make sure you have a Heroku account. By default, an add-on Heroku Postgres will be used as meta database. You can see the connection string defined in `DATABASE_URL` by navigating to Heroku App Settings and selecting Config Vars.
-
-<a href="https://heroku.com/deploy?template=https://github.com/nocodb/nocodb-seed-heroku">
-    <img 
-    src="https://www.herokucdn.com/deploy/button.svg" 
-    width="300px"
-    alt="Deploy NocoDB to Heroku with 1-Click" 
-    />
-</a>
-
 ### Docker
 
 If you are a Docker user, you may try this way!
@@ -310,7 +298,6 @@ npm start
   <alert>
     If your service fails to start, you may check the logs in ECS console or in Cloudwatch. Generally it fails due to the connection between ECS container and NC_DB. Make sure the security groups have the correct inbound and outbound rules.  
   </alert>
-  ```
 
 </details>
 
@@ -530,6 +517,3 @@ It is mandatory to configure `NC_DB` environment variables for production usecas
 ### Using NPX
 
 <youtube id="v6Nn75P1p7I"></youtube>
-
-### Heroku Deployment
-<youtube id="WB7yYXfhocY"></youtube>

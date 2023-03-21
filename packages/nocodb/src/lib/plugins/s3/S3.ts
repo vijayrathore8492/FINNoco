@@ -1,4 +1,5 @@
 import fs from 'fs';
+import { promisify } from 'util';
 import AWS from 'aws-sdk';
 import slash from 'slash';
 import { IStorageAdapterV2, XcFile } from 'nc-plugin';
@@ -34,12 +35,14 @@ export default class S3 implements IStorageAdapterV2 {
       uploadParams.Key = key;
 
       // call S3 to retrieve upload file to specified bucket
-      this.s3Client.upload(uploadParams, (err, data) => {
+      this.s3Client.upload(uploadParams, async (err, data) => {
         if (err) {
           console.log('Error', err);
           reject(err);
         }
         if (data) {
+          //unlink file from temp folder
+          await promisify(fs.unlink)(file.path);
           resolve(data.Location);
         }
       });
@@ -174,7 +177,7 @@ export default class S3 implements IStorageAdapterV2 {
         originalname: 'temp.txt',
         size: '',
       });
-      fs.unlinkSync(tempFile);
+      await promisify(fs.unlink)(tempFile);
       return true;
     } catch (e) {
       throw e;
