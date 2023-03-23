@@ -385,7 +385,12 @@ const setIcon = async (icon: string, table: TableType) => {
             <IcRoundSearch v-else class="text-gray-500 text-lg mx-1 mt-0.5" @click="onSearchIconClick" />
           </Transition>
 
-          <a-dropdown v-if="!isSharedBase" :trigger="['click']" overlay-class-name="nc-dropdown-import-menu" @click.stop>
+          <a-dropdown
+            v-if="isUIAllowed('projectCreate') && !isSharedBase"
+            :trigger="['click']"
+            overlay-class-name="nc-dropdown-import-menu"
+            @click.stop
+          >
             <Transition name="slide-right" mode="out-in">
               <MdiDotsVertical v-if="!searchActive" class="hover:text-accent outline-0" />
             </Transition>
@@ -431,18 +436,6 @@ const setIcon = async (icon: string, table: TableType) => {
 
                 <a-menu-divider class="my-0" />
 
-                <a-menu-item v-if="isUIAllowed('importRequest')" key="add-new-table" class="py-1 rounded-b">
-                  <a
-                    v-e="['e:datasource:import-request']"
-                    href="https://github.com/nocodb/nocodb/issues/2052"
-                    target="_blank"
-                    class="prose-sm hover:(!text-primary !opacity-100) color-transition nc-project-menu-item group after:(!rounded-b)"
-                  >
-                    <MdiOpenInNew class="group-hover:text-accent" />
-                    <!-- Request a data source you need? -->
-                    {{ $t('labels.requestDataSource') }}
-                  </a>
-                </a-menu-item>
               </a-menu>
             </template>
           </a-dropdown>
@@ -512,57 +505,46 @@ const setIcon = async (icon: string, table: TableType) => {
 
                   <a-menu-divider class="my-0" />
 
-                  <a-menu-item-group title="Connect to new datasource" class="!px-0 !mx-0">
-                    <a-menu-item key="connect-new-source" @click="toggleDialog(true, 'dataSources', ClientType.MYSQL)">
-                      <div class="color-transition nc-project-menu-item group">
-                        <LogosMysqlIcon class="group-hover:text-accent" />
-                        MySQL
-                      </div>
-                    </a-menu-item>
-                    <a-menu-item key="connect-new-source" @click="toggleDialog(true, 'dataSources', ClientType.PG)">
-                      <div class="color-transition nc-project-menu-item group">
-                        <LogosPostgresql class="group-hover:text-accent" />
-                        Postgres
-                      </div>
-                    </a-menu-item>
-                    <a-menu-item key="connect-new-source" @click="toggleDialog(true, 'dataSources', ClientType.SQLITE)">
-                      <div class="color-transition nc-project-menu-item group">
-                        <VscodeIconsFileTypeSqlite class="group-hover:text-accent" />
-                        SQLite
-                      </div>
-                    </a-menu-item>
-                    <a-menu-item key="connect-new-source" @click="toggleDialog(true, 'dataSources', ClientType.MSSQL)">
-                      <div class="color-transition nc-project-menu-item group">
-                        <SimpleIconsMicrosoftsqlserver class="group-hover:text-accent" />
-                        MSSQL
-                      </div>
-                    </a-menu-item>
-                    <a-menu-item
-                      v-if="appInfo.ee"
-                      key="connect-new-source"
-                      @click="toggleDialog(true, 'dataSources', ClientType.SNOWFLAKE)"
-                    >
-                      <div class="color-transition nc-project-menu-item group">
-                        <LogosSnowflakeIcon class="group-hover:text-accent" />
-                        Snowflake
-                      </div>
-                    </a-menu-item>
-                  </a-menu-item-group>
+                  <div v-if="isUIAllowed('projectCreate')">
+                    <a-menu-item-group title="Connect to new datasource" class="!px-0 !mx-0">
+                      <a-menu-item key="connect-new-source" @click="toggleDialog(true, 'dataSources', ClientType.MYSQL)">
+                        <div class="color-transition nc-project-menu-item group">
+                          <LogosMysqlIcon class="group-hover:text-accent" />
+                          MySQL
+                        </div>
+                      </a-menu-item>
+                      <a-menu-item key="connect-new-source" @click="toggleDialog(true, 'dataSources', ClientType.PG)">
+                        <div class="color-transition nc-project-menu-item group">
+                          <LogosPostgresql class="group-hover:text-accent" />
+                          Postgres
+                        </div>
+                      </a-menu-item>
+                      <a-menu-item key="connect-new-source" @click="toggleDialog(true, 'dataSources', ClientType.SQLITE)">
+                        <div class="color-transition nc-project-menu-item group">
+                          <VscodeIconsFileTypeSqlite class="group-hover:text-accent" />
+                          SQLite
+                        </div>
+                      </a-menu-item>
+                      <a-menu-item key="connect-new-source" @click="toggleDialog(true, 'dataSources', ClientType.MSSQL)">
+                        <div class="color-transition nc-project-menu-item group">
+                          <SimpleIconsMicrosoftsqlserver class="group-hover:text-accent" />
+                          MSSQL
+                        </div>
+                      </a-menu-item>
+                      <a-menu-item
+                        v-if="appInfo.ee"
+                        key="connect-new-source"
+                        @click="toggleDialog(true, 'dataSources', ClientType.SNOWFLAKE)"
+                      >
+                        <div class="color-transition nc-project-menu-item group">
+                          <LogosSnowflakeIcon class="group-hover:text-accent" />
+                          Snowflake
+                        </div>
+                      </a-menu-item>
+                    </a-menu-item-group>
 
-                  <a-menu-divider class="my-0" />
-
-                  <a-menu-item v-if="isUIAllowed('importRequest')" key="add-new-table" class="py-1 rounded-b">
-                    <a
-                      v-e="['e:datasource:import-request']"
-                      href="https://github.com/nocodb/nocodb/issues/2052"
-                      target="_blank"
-                      class="prose-sm hover:(!text-primary !opacity-100) color-transition nc-project-menu-item group after:(!rounded-b)"
-                    >
-                      <MdiOpenInNew class="group-hover:text-accent" />
-                      <!-- Request a data source you need? -->
-                      {{ $t('labels.requestDataSource') }}
-                    </a>
-                  </a-menu-item>
+                    <a-menu-divider class="my-0" />
+                  </div>
                 </a-menu>
               </template>
             </a-dropdown>
@@ -770,19 +752,6 @@ const setIcon = async (icon: string, table: TableType) => {
                           </a-menu-item-group>
 
                           <a-menu-divider class="my-0" />
-
-                          <a-menu-item v-if="isUIAllowed('importRequest')" key="add-new-table" class="py-1 rounded-b">
-                            <a
-                              v-e="['e:datasource:import-request']"
-                              href="https://github.com/nocodb/nocodb/issues/2052"
-                              target="_blank"
-                              class="prose-sm hover:(!text-primary !opacity-100) color-transition nc-project-menu-item group after:(!rounded-b)"
-                            >
-                              <MdiOpenInNew class="group-hover:text-accent" />
-                              <!-- Request a data source you need? -->
-                              {{ $t('labels.requestDataSource') }}
-                            </a>
-                          </a-menu-item>
                         </a-menu>
                       </template>
                     </a-dropdown>
@@ -856,19 +825,6 @@ const setIcon = async (icon: string, table: TableType) => {
                           </a-menu-item-group>
 
                           <a-menu-divider class="my-0" />
-
-                          <a-menu-item v-if="isUIAllowed('importRequest')" key="add-new-table" class="py-1 rounded-b">
-                            <a
-                              v-e="['e:datasource:import-request']"
-                              href="https://github.com/nocodb/nocodb/issues/2052"
-                              target="_blank"
-                              class="prose-sm hover:(!text-primary !opacity-100) color-transition nc-project-menu-item group after:(!rounded-b)"
-                            >
-                              <MdiOpenInNew class="group-hover:text-accent" />
-                              <!-- Request a data source you need? -->
-                              {{ $t('labels.requestDataSource') }}
-                            </a>
-                          </a-menu-item>
                         </a-menu>
                       </template>
                     </a-dropdown>

@@ -84,10 +84,14 @@ const tabsInfo: TabGroup = {
     title: 'Data Sources',
     icon: MultipleTableIcon,
     subTabs: {
-      dataSources: {
-        title: 'Data Sources',
-        body: DataSources,
-      },
+      ...(isUIAllowed('projectCreate')
+        ? {
+            dataSources: {
+              title: 'Data Sources',
+              body: DataSources,
+            },
+          }
+        : {}),
     },
     onClick: () => {
       vDataState.value = ''
@@ -114,11 +118,15 @@ const tabsInfo: TabGroup = {
     title: 'Project Settings',
     icon: FolderCog,
     subTabs: {
-      misc: {
-        // Misc
-        title: 'Misc',
-        body: Misc,
-      },
+      ...(isUIAllowed('projectCreate')
+        ? {
+            misc: {
+              // Misc
+              title: 'Misc',
+              body: Misc,
+            },
+          }
+        : {}),
     },
     onClick: () => {
       $e('c:settings:project-settings')
