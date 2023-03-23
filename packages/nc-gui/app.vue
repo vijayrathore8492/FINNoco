@@ -13,7 +13,7 @@ const { $sentryCaptureException } = useNuxtApp()
 
 message.error = new Proxy(message.error, {
   apply: (target, thisArg, argArray) => {
-    $sentryCaptureException(argArray)
+    if ($sentryCaptureException) $sentryCaptureException(argArray)
     return Reflect.apply(target, thisArg, argArray)
   },
 })
