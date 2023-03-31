@@ -15,15 +15,15 @@ const useAttachment = () => {
       return item.data
     }
     const sources = getPossibleAttachmentSrc(item)
-    const mimeType = mimeTypes[item?.mimetype?.split('/')?.pop() || 'txt']
-    for (const source of sources) {
-      // test if the source is accessible or not
-      const res = await fetch(source)
-      if (res.ok && res.headers.get('Content-Type') === mimeType) {
-        return source
-      }
-    }
-    return null
+    // const mimeType = mimeTypes[item?.mimetype?.split('/')?.pop() || 'txt']
+    // for (const source of sources) {
+    //   // test if the source is accessible or not
+    //   const res = await fetch(source)
+    //   if (res.ok && res.headers.get('Content-Type') === mimeType) {
+    //     return source
+    //   }
+    // }
+    return sources[0]
   }
 
   const openAttachment = async (item: Record<string, any>) => {
