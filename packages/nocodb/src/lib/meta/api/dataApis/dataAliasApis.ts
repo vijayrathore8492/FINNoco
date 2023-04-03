@@ -135,8 +135,8 @@ async function getDataList(model, view: View, req) {
     count = await baseModel.count(listArgs);
   } catch (e) {
     console.log(e);
-    NcError.internalServerError(
-      'Internal Server Error, check server log for more details'
+    NcError.badRequest(
+      e.message || 'Error while executing the query. Please check the request.'
     );
   }
 
