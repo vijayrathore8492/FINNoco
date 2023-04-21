@@ -8,7 +8,7 @@ import genRollupSelectv2 from './genRollupSelectv2';
 import RollupColumn from '../../../../models/RollupColumn';
 import formulaQueryBuilderv2 from './formulav2/formulaQueryBuilderv2';
 import FormulaColumn from '../../../../models/FormulaColumn';
-import { RelationTypes, UITypes, isNumericCol } from 'nocodb-sdk';
+import { isNumericCol, RelationTypes, UITypes } from 'nocodb-sdk';
 import { sanitize } from './helpers/sanitize';
 
 function isNumeric(n) {
@@ -285,13 +285,12 @@ const parseConditionV2 = async (
           return;
         }
 
-        if (
-          isNumericCol(column.uidt) &&
-          typeof val === 'string' &&
-          isNumeric(val)
-        ) {
-          // convert to number
-          val = +val;
+        if (isNumericCol(column) && typeof val === 'string') {
+          if (val === '') {
+            val = null;
+          } else if (isNumeric(val)) {
+            val = +val;
+          }
         }
 
         switch (filter.comparison_op) {
@@ -490,10 +489,12 @@ const parseConditionV2 = async (
             }
             break;
           case 'in':
-            qb = qb.whereIn(
-              field,
-              Array.isArray(val) ? val : val?.split?.(',')
-            );
+            if (!val) {
+              val = [];
+            } else if (typeof val === 'string') {
+              val = val.split(',');
+            }
+            qb = qb.whereIn(field, val);
             break;
           case 'is':
             if (filter.value === 'null')
@@ -572,7 +573,7 @@ const parseConditionV2 = async (
                 .orWhere(field, 'null');
             } else {
               qb = qb.whereNull(customWhereClause || field);
-              if (!isNumericCol(column.uidt)) {
+              if (!isNumericCol(column)) {
                 qb = qb.orWhere(field, '');
               }
             }
@@ -585,7 +586,7 @@ const parseConditionV2 = async (
                 .whereNot(field, 'null');
             } else {
               qb = qb.whereNotNull(customWhereClause || field);
-              if (!isNumericCol(column.uidt)) {
+              if (!isNumericCol(column)) {
                 qb = qb.whereNot(field, '');
               }
             }

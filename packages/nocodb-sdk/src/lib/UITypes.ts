@@ -49,6 +49,30 @@ export const numericUITypes = [
   UITypes.Rollup,
 ];
 
+export const numericDBTypes = [
+  'numeric',
+  'tinyint',
+  'smallint',
+  'mediumint',
+  'int',
+  'int2',
+  'int4',
+  'int8',
+  'integer',
+  'bigint',
+  'smallserial',
+  'serial',
+  'bigserial',
+  'serial2',
+  'serial8',
+  'float',
+  'float4',
+  'float8',
+  'double precision',
+  'double',
+  'decimal',
+];
+
 export function isNumericCol(
   col:
     | UITypes
@@ -56,8 +80,13 @@ export function isNumericCol(
     | ColumnReqType
     | ColumnType
 ) {
-  return numericUITypes.includes(
-    <UITypes>(typeof col === 'object' ? col?.uidt : col)
+  const uidt = typeof col === 'object' ? col?.['uidt'] : col;
+  const dt = typeof col === 'object' ? col?.['dt'] : '';
+  const dtx = typeof col === 'object' ? col?.['dtx'] : '';
+  return (
+    numericUITypes.includes(<UITypes>uidt) ||
+    (dt && numericDBTypes.includes(dt)) ||
+    (dtx && numericDBTypes.includes(dtx))
   );
 }
 
