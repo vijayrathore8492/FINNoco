@@ -378,12 +378,16 @@ const parseConditionV2 = async (
               if (column.uidt === UITypes.Formula) {
                 [field, val] = [val, field];
                 val = `%${val}%`.replace(/^%'([\s\S]*)'%$/, '%$1%');
-              } else {
+              } else if (typeof val === 'string') {
                 val =
                   val.startsWith('%') || val.endsWith('%') ? val : `%${val}%`;
               }
               if (qb?.client?.config?.client === 'pg') {
-                qb = qb.whereRaw('??::text ilike ?', [field, val]);
+                if (isNumericCol(column)) {
+                  qb = qb.where(field, val);
+                } else {
+                  qb = qb.whereRaw('??::text ilike ?', [field, val]);
+                }
               } else {
                 qb = qb.where(field, 'like', val);
               }
