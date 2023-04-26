@@ -115,6 +115,9 @@ export default class ProjectUser {
       );
     });
 
+    queryBuilder.orderBy(`${MetaTable.PROJECT_USERS}.roles`);
+    queryBuilder.orderBy(`${MetaTable.USERS}.email`);
+
     return await queryBuilder;
   }
 
