@@ -111,17 +111,19 @@ const changeVisibilityRules = (allowed: boolean, role: ProjectRole) => {
       <span class="text-gray-400 text-xs">{{ sampleValue }}</span>
     </a-form-item>
 
-    <div class="flex justify-between w-full gap-1">
-      <a-form-item v-for="role in projectRoles" :key="role" :label="role" class="capitalize">
-        <a-checkbox
-          :checked="
-            !!(vModel.visibility_rules?.[role] === undefined || vModel.visibility_rules?.[role] === AccessControlType.Allow)
-          "
-          :data-testid="`visibility-rules-checkbox-${role}`"
-          size="small"
-          @update:checked="(allowed) => changeVisibilityRules(allowed, role)"
-        />
-      </a-form-item>
-    </div>
+    <a-form-item label="Visibility Rules" class="capitalize">
+      <div class="flex justify-between w-full gap-1">
+        <a-form-item v-for="role in projectRoles" :key="role" :label="role" class="capitalize">
+          <a-checkbox
+            :checked="
+              !!(vModel.visibility_rules?.[role] === undefined || vModel.visibility_rules?.[role] === AccessControlType.Allow)
+            "
+            :data-testid="`visibility-rules-checkbox-${role}`"
+            size="small"
+            @update:checked="(allowed) => changeVisibilityRules(allowed, role)"
+          />
+        </a-form-item>
+      </div>
+    </a-form-item>
   </div>
 </template>
