@@ -375,6 +375,7 @@ const parseConditionV2 = async (
                 qb.orWhereNotNull(field);
               }
             } else {
+              val = String(val);
               if (column.uidt === UITypes.Formula) {
                 [field, val] = [val, field];
                 val = `%${val}%`.replace(/^%'([\s\S]*)'%$/, '%$1%');
@@ -383,11 +384,7 @@ const parseConditionV2 = async (
                   val.startsWith('%') || val.endsWith('%') ? val : `%${val}%`;
               }
               if (qb?.client?.config?.client === 'pg') {
-                if (isNumericCol(column)) {
-                  qb = qb.where(field, val);
-                } else {
-                  qb = qb.whereRaw('??::text ilike ?', [field, val]);
-                }
+                qb = qb.whereRaw('??::text ilike ?', [field, val]);
               } else {
                 qb = qb.where(field, 'like', val);
               }
@@ -405,6 +402,7 @@ const parseConditionV2 = async (
                 qb.orWhereNull(field);
               }
             } else {
+              val = String(val);
               if (column.uidt === UITypes.Formula) {
                 [field, val] = [val, field];
                 val = `%${val}%`.replace(/^%'([\s\S]*)'%$/, '%$1%');
