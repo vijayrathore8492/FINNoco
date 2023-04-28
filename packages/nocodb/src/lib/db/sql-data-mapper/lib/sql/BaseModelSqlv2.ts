@@ -1581,7 +1581,17 @@ class BaseModelSqlv2 {
     });
   }
 
+  private async throwErrorIfViewIsLocked() {
+    if (this.viewId) {
+      const view = await View.get(this.viewId);
+      if (view.lock_type === 'locked') {
+        NcError.forbidden('View is locked for editing');
+      }
+    }
+  }
+
   async insert(data, trx?, cookie?) {
+    await this.throwErrorIfViewIsLocked();
     try {
       await populatePk(this.model, data);
 
@@ -1683,6 +1693,7 @@ class BaseModelSqlv2 {
   }
 
   async delByPk(id, trx?, cookie?) {
+    await this.throwErrorIfViewIsLocked();
     try {
       // retrieve data for handling paramas in hook
       const data = await this.readByPk(id);
@@ -1742,6 +1753,7 @@ class BaseModelSqlv2 {
   }
 
   async updateByPk(id, data, trx?, cookie?) {
+    await this.throwErrorIfViewIsLocked();
     try {
       const updateObj = await this.mapAliasToColumn(data);
 
@@ -1834,6 +1846,7 @@ class BaseModelSqlv2 {
 
   async nestedInsert(data, _trx = null, cookie?) {
     // const driver = trx ? trx : await this.dbDriver.transaction();
+    await this.throwErrorIfViewIsLocked();
     try {
       await populatePk(this.model, data);
       const insertObj = await this.mapAliasToColumn(data);
@@ -1989,6 +2002,7 @@ class BaseModelSqlv2 {
       cookie?: any;
     } = {}
   ) {
+    await this.throwErrorIfViewIsLocked();
     try {
       const insertDatas = await Promise.all(
         datas.map(async (d) => {
@@ -2041,6 +2055,7 @@ class BaseModelSqlv2 {
   }
 
   async bulkUpdate(datas: any[], { cookie }: { cookie?: any } = {}) {
+    await this.throwErrorIfViewIsLocked();
     let transaction;
     try {
       const updateDatas = await Promise.all(
@@ -2084,6 +2099,7 @@ class BaseModelSqlv2 {
     data,
     { cookie }: { cookie?: any } = {}
   ) {
+    await this.throwErrorIfViewIsLocked();
     let queryResponse;
     try {
       const updateData = await this.mapAliasToColumn(data);
@@ -2129,6 +2145,7 @@ class BaseModelSqlv2 {
   }
 
   async bulkDelete(ids: any[], { cookie }: { cookie?: any } = {}) {
+    await this.throwErrorIfViewIsLocked();
     let transaction;
     try {
       const deleteIds = await Promise.all(
@@ -2164,6 +2181,7 @@ class BaseModelSqlv2 {
     args: { where?: string; filterArr?: Filter[] } = {},
     { cookie }: { cookie?: any } = {}
   ) {
+    await this.throwErrorIfViewIsLocked();
     try {
       await this.model.getColumns();
       const { where } = this._getListArgs(args);
@@ -2541,6 +2559,7 @@ class BaseModelSqlv2 {
     childId: string;
     cookie?: any;
   }) {
+    await this.throwErrorIfViewIsLocked();
     const columns = await this.model.getColumns();
     const column = columns.find((c) => c.id === colId);
 
@@ -2658,6 +2677,7 @@ class BaseModelSqlv2 {
     childId: string;
     cookie?: any;
   }) {
+    await this.throwErrorIfViewIsLocked();
     const columns = await this.model.getColumns();
     const column = columns.find((c) => c.id === colId);
 
