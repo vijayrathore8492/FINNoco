@@ -952,6 +952,40 @@ export class Api<
       }),
 
     /**
+ * @description Clear refresh token from the database and cookie.
+ * 
+ * @tags Auth
+ * @name Signout
+ * @summary Signout
+ * @request POST:/api/v1/auth/user/signout
+ * @response `200` `{
+  \**
+   * Success Message
+   * @example Signed out successfully
+   *\
+  msg?: string,
+
+}` OK
+ * @response `400` `void`
+ */
+    signout: (params: RequestParams = {}) =>
+      this.request<
+        {
+          /**
+           * Success Message
+           * @example Signed out successfully
+           */
+          msg?: string;
+        },
+        void
+      >({
+        path: `/api/v1/auth/user/signout`,
+        method: 'POST',
+        format: 'json',
+        ...params,
+      }),
+
+    /**
      * @description Returns authenticated user info
      *
      * @tags Auth

@@ -29,7 +29,7 @@ export function addAxiosInterceptors(api: Api<any>) {
   api.instance.interceptors.response.use(
     (response) => response,
     // Handle Error
-    (error) => {
+    async (error) => {
       if (error.response && error.response.data && error.response.data.msg === DbNotFoundMsg) return router.replace('/project/0')
 
       // Return any error which is not due to authentication back to the calling service
@@ -39,7 +39,7 @@ export function addAxiosInterceptors(api: Api<any>) {
 
       // Logout user if token refresh didn't work or user is disabled
       if (error.config.url === '/auth/token/refresh') {
-        state.signOut()
+        await state.signOut()
         return Promise.reject(error)
       }
 
@@ -66,7 +66,7 @@ export function addAxiosInterceptors(api: Api<any>) {
           })
         })
         .catch(async (error) => {
-          state.signOut()
+          await state.signOut()
           // todo: handle new user
 
           navigateTo('/signIn')
