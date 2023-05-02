@@ -100,9 +100,6 @@ export async function signup(req: Request, res: Response<TableType>) {
   const email = _email.toLowerCase();
 
   let user = await User.getByEmail(email);
-  if (await signUpNotAllowed(token, user)) {
-    NcError.badRequest('Sign Up is not allowed!');
-  }
 
   if (user) {
     if (token) {
@@ -194,18 +191,6 @@ export async function signup(req: Request, res: Response<TableType>) {
   res.json({
     token: genJwt(user, Noco.getConfig()),
   } as any);
-}
-
-function isInvalidToken(token, user): boolean {
-  return !token || !user || token !== user.invite_token;
-}
-
-async function signUpNotAllowed(token, user): Promise<boolean> {
-  return (
-    process.env.NC_NO_SIGN_UP === '1' &&
-    !(await User.isFirst()) &&
-    isInvalidToken(token, user)
-  );
 }
 
 async function successfulSignIn({

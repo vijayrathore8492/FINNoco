@@ -42,7 +42,8 @@ import xcMetaDiff from './handlers/xcMetaDiff';
 import S3 from '../../lib/plugins/s3/S3';
 import { UITypes } from 'nocodb-sdk';
 import { Tele } from 'nc-help';
-import { NC_ATTACHMENT_FIELD_SIZE } from '../constants';
+import { NC_APP_SETTINGS, NC_ATTACHMENT_FIELD_SIZE } from '../constants';
+import Store from '../models/Store';
 const randomID = customAlphabet('1234567890abcdefghijklmnopqrstuvwxyz_', 10);
 const XC_PLUGIN_DET = 'XC_PLUGIN_DET';
 
@@ -306,7 +307,9 @@ export default class NcMetaMgr {
                 ),
                 timezone: defaultConnectionConfig.timezone,
                 ncMin: !!process.env.NC_MIN,
-                noSignUp: process.env.NC_NO_SIGN_UP === '1'
+                noSignUp: !!JSON.parse(
+                  (await Store.get(NC_APP_SETTINGS))?.value
+                )?.invite_only_signup,
               };
               return res.json(result);
             }

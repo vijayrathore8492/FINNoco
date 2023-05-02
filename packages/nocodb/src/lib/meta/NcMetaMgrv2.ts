@@ -11,7 +11,8 @@ import NcPluginMgr from '../v1-legacy/plugins/NcPluginMgr';
 import NcMetaIO from './NcMetaIO';
 import { defaultConnectionConfig } from '../utils/NcConfigFactory';
 import ncCreateLookup from './handlersv2/ncCreateLookup';
-import { NC_ATTACHMENT_FIELD_SIZE } from '../constants';
+import { NC_APP_SETTINGS, NC_ATTACHMENT_FIELD_SIZE } from '../constants';
+import Store from '../models/Store';
 // import ncGetMeta from './handlersv2/ncGetMeta';
 
 export default class NcMetaMgrv2 {
@@ -247,7 +248,9 @@ export default class NcMetaMgrv2 {
                   +process.env.DB_QUERY_LIMIT_MIN || 1
                 ),
                 timezone: defaultConnectionConfig.timezone,
-                noSignUp: process.env.NC_NO_SIGN_UP === '1'
+                noSignUp: !!JSON.parse(
+                  (await Store.get(NC_APP_SETTINGS))?.value
+                )?.invite_only_signup,
               };
               return res.json(result);
             }

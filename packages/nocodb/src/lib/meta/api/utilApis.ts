@@ -16,7 +16,8 @@ import NcConfigFactory, {
 import User from '../../models/User';
 import catchError from '../helpers/catchError';
 import axios from 'axios';
-import { NC_ATTACHMENT_FIELD_SIZE } from '../../constants';
+import { NC_APP_SETTINGS, NC_ATTACHMENT_FIELD_SIZE } from '../../constants';
+import Store from '../../models/Store';
 
 const versionCache = {
   releaseVersion: null,
@@ -56,7 +57,8 @@ export async function appInfo(req: Request, res: Response) {
     ),
     timezone: defaultConnectionConfig.timezone,
     ncMin: !!process.env.NC_MIN,
-    noSignUp: process.env.NC_NO_SIGN_UP === '1',
+    noSignUp: !!JSON.parse((await Store.get(NC_APP_SETTINGS))?.value)
+      ?.invite_only_signup,
     platform: process.env.NC_ENV,
     sentryDsnFrontend: process.env.NC_SENTRY_DSN_FRONTEND,
     teleEnabled: process.env.NC_DISABLE_TELE === 'true' ? false : true,
