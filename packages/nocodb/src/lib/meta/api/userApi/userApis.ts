@@ -274,6 +274,21 @@ async function signin(req, res, next) {
   )(req, res, next);
 }
 
+async function signout(req, res, _next) {
+  try {
+    res.clearCookie('refresh_token');
+    const user = (req as any).user;
+    if (user) {
+      await User.update(user.id, {
+        refresh_token: null,
+      });
+    }
+    res.json({ msg: 'Signed out successfully' });
+  } catch (e) {
+    NcError.badRequest(e.message);
+  }
+}
+
 async function googleSignin(req, res, next) {
   passport.authenticate(
     'google',
@@ -540,6 +555,7 @@ const mapRoutes = (router) => {
   // todo: old api - /auth/signup?tool=1
   router.post('/auth/user/signup', catchError(signup));
   router.post('/auth/user/signin', catchError(signin));
+  router.post('/auth/user/signout', catchError(signout));
   router.get('/auth/user/me', extractProjectIdAndAuthenticate, catchError(me));
   router.post('/auth/password/forgot', catchError(passwordForgot));
   router.post('/auth/token/validate/:tokenId', catchError(tokenValidate));
@@ -566,6 +582,7 @@ const mapRoutes = (router) => {
   // deprecated APIs
   router.post('/api/v1/db/auth/user/signup', catchError(signup));
   router.post('/api/v1/db/auth/user/signin', catchError(signin));
+  router.post('/api/v1/db/auth/user/signout', catchError(signout));
   router.get(
     '/api/v1/db/auth/user/me',
     extractProjectIdAndAuthenticate,
@@ -597,6 +614,7 @@ const mapRoutes = (router) => {
   // new API
   router.post('/api/v1/auth/user/signup', catchError(signup));
   router.post('/api/v1/auth/user/signin', catchError(signin));
+  router.post('/api/v1/auth/user/signout', catchError(signout));
   router.get(
     '/api/v1/auth/user/me',
     extractProjectIdAndAuthenticate,

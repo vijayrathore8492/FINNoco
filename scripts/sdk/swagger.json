@@ -167,6 +167,48 @@
       },
       "parameters": []
     },
+    "/api/v1/auth/user/signout": {
+      "post": {
+        "summary": "Signout",
+        "operationId": "auth-signout",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "msg": {
+                      "type": "string",
+                      "description": "Success Message",
+                      "example": "Signed out successfully"
+                    }
+                  }
+                },
+                "examples": {
+                  "Example 1": {
+                    "value": {
+                      "msg": "Signed out successfully"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequest"
+          }
+        },
+        "tags": ["Auth"],
+        "description": "Clear refresh token from the database and cookie."
+      },
+      "parameters": [
+        {
+          "$ref": "#/components/parameters/xc-auth"
+        }
+      ]
+    },
     "/api/v1/auth/user/me": {
       "parameters": [],
       "get": {
