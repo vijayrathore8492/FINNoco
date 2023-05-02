@@ -34,8 +34,8 @@ const isLocked = inject(IsLockedInj, ref(false))
 
 const { open } = useExpandedFormDetached()
 
-function openExpandedForm() {
-  if (!readOnly && !isLocked.value) {
+const openExpandedForm = (read: boolean, lock: boolean, uiAllow: boolean) => {
+  if (!read && !lock && uiAllow) {
     open({
       isOpen: true,
       row: { row: item, rowMeta: {}, oldRow: { ...item } },
@@ -57,7 +57,7 @@ export default {
   <div
     class="chip group py-1 px-2 mr-1 my-1 flex items-center bg-blue-100/60 hover:bg-blue-100/40 rounded-[2px]"
     :class="{ active }"
-    @click="openExpandedForm"
+    @click="() => openExpandedForm(readOnly, isLocked, isUIAllowed('xcDatatableEditable'))"
   >
     <span class="name">{{ value }}</span>
 
