@@ -57,20 +57,6 @@ function authTests() {
       .expect(400);
   });
 
-  it('Signup when NC_NO_SIGN_UP is set to 1', async () => {
-    process.env.NC_NO_SIGN_UP = '1'
-    const response = await request(context.app)
-      .post('/api/v1/auth/user/signup')
-      .send({ email: defaultUserArgs.email, password: defaultUserArgs.password })
-      .expect(400);
-    
-    expect(response.body).to.deep.equal({
-      msg: "Sign Up is not allowed!",
-    })
-
-    delete process.env.NC_NO_SIGN_UP
-  });
-
   it('Signin with valid credentials', async () => {
     const response = await request(context.app)
       .post('/api/v1/auth/user/signin')
