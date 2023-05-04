@@ -20,6 +20,7 @@ import * as nc_119_add_visibility_rules_in_column from './v2/nc_119_add_visibili
 import * as nc_023_multiple_source from './v2/nc_023_multiple_source';
 import * as nc_024_barcode_column_type from './v2/nc_024_barcode_column_type';
 import * as nc_025_add_row_height from './v2/nc_025_add_row_height';
+import * as nc_120_replace_email_domain_finn_auto_to_finn_com from './v2/nc_120_replace_email_domain_finn_auto_to_finn_com';
 
 // Create a custom migration source class
 export default class XcMigrationSourcev2 {
@@ -51,6 +52,7 @@ export default class XcMigrationSourcev2 {
       'nc_023_multiple_source',
       'nc_024_barcode_column_type',
       'nc_025_add_row_height',
+      'nc_120_replace_email_domain_finn_auto_to_finn_com',
     ]);
   }
 
@@ -104,6 +106,8 @@ export default class XcMigrationSourcev2 {
         return nc_024_barcode_column_type;
       case 'nc_025_add_row_height':
         return nc_025_add_row_height;
+      case 'nc_120_replace_email_domain_finn_auto_to_finn_com':
+        return nc_120_replace_email_domain_finn_auto_to_finn_com;
     }
   }
 }
