@@ -168,6 +168,8 @@ export default {
   },
   commenter: {
     include: {
+      hideAllColumns: true,
+      showAllColumns: true,
       formViewGet: true,
       passwordChange: true,
       // project
@@ -232,6 +234,8 @@ export default {
   },
   viewer: {
     include: {
+      hideAllColumns: true,
+      showAllColumns: true,
       formViewGet: true,
       passwordChange: true,
       // project
