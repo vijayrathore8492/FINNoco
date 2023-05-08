@@ -105,6 +105,18 @@ const [useProvideLTARStore, useLTARStore] = useInjectionState(
       return (meta.value?.columns?.find((c: Required<ColumnType>) => c.pv) || relatedTableMeta?.value?.columns?.[0])?.title
     })
 
+    const buildWhereClause = (query: string) => {
+      if (!query) return
+
+      let whereClause = `(${relatedTableDisplayValueProp.value},like,${query})`;
+
+      relatedTablePrimaryKeyProps.value.forEach((pk) => {
+        whereClause += `~or(${pk},like,${query})`
+      })
+
+      return whereClause
+    }
+
     const loadChildrenExcludedList = async () => {
       try {
         if (isPublic) {
@@ -123,9 +135,7 @@ const [useProvideLTARStore, useLTARStore] = useInjectionState(
               query: {
                 limit: childrenExcludedListPagination.size,
                 offset: childrenExcludedListPagination.size * (childrenExcludedListPagination.page - 1),
-                where:
-                  childrenExcludedListPagination.query &&
-                  `(${relatedTableDisplayValueProp.value},like,${childrenExcludedListPagination.query})`,
+                where: buildWhereClause(childrenExcludedListPagination.query),
                 fields: [relatedTableDisplayValueProp.value, ...relatedTablePrimaryKeyProps.value],
               } as RequestParams,
             },
@@ -140,9 +150,7 @@ const [useProvideLTARStore, useLTARStore] = useInjectionState(
             {
               limit: childrenExcludedListPagination.size,
               offset: childrenExcludedListPagination.size * (childrenExcludedListPagination.page - 1),
-              where:
-                childrenExcludedListPagination.query &&
-                `(${relatedTableDisplayValueProp.value},like,${childrenExcludedListPagination.query})`,
+              where: buildWhereClause(childrenExcludedListPagination.query),
               fields: [relatedTableDisplayValueProp.value, ...relatedTablePrimaryKeyProps.value],
             } as any,
           )
@@ -158,9 +166,7 @@ const [useProvideLTARStore, useLTARStore] = useInjectionState(
               limit: String(childrenExcludedListPagination.size),
               offset: String(childrenExcludedListPagination.size * (childrenExcludedListPagination.page - 1)),
               // todo: where clause is missing from type
-              where:
-                childrenExcludedListPagination.query &&
-                `(${relatedTableDisplayValueProp.value},like,${childrenExcludedListPagination.query})`,
+              where: buildWhereClause(childrenExcludedListPagination.query),
             } as any,
           )
         }

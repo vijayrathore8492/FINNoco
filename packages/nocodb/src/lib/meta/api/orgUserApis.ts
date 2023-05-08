@@ -240,7 +240,7 @@ async function generateResetUrl(req, res) {
 async function appSettingsGet(_req, res) {
   let settings = {};
   try {
-    settings = JSON.parse((await Store.get(NC_APP_SETTINGS))?.value);
+    settings = JSON.parse((await Store.get(NC_APP_SETTINGS))?.value || '{}');
   } catch {}
   res.json(settings);
 }
