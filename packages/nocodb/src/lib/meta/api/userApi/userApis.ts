@@ -53,7 +53,7 @@ export async function registerNewUserIfAllowed({
   } else {
     let settings: { invite_only_signup?: boolean } = {};
     try {
-      settings = JSON.parse((await Store.get(NC_APP_SETTINGS))?.value);
+      settings = JSON.parse((await Store.get(NC_APP_SETTINGS))?.value || '{}');
     } catch {}
 
     if (settings?.invite_only_signup) {

@@ -57,7 +57,7 @@ export async function appInfo(req: Request, res: Response) {
     ),
     timezone: defaultConnectionConfig.timezone,
     ncMin: !!process.env.NC_MIN,
-    noSignUp: !!JSON.parse((await Store.get(NC_APP_SETTINGS))?.value)
+    noSignUp: !!JSON.parse((await Store.get(NC_APP_SETTINGS))?.value || '{}')
       ?.invite_only_signup,
     platform: process.env.NC_ENV,
     sentryDsnFrontend: process.env.NC_SENTRY_DSN_FRONTEND,
