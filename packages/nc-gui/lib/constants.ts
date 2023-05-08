@@ -66,6 +66,8 @@ export const rolePermissions = {
       settings: true,
       apiTokenTab: true,
       teamAndAuth: true,
+      hideAllColumns: true,
+      showAllColumns: true,
     },
   },
   [ProjectRole.Commenter]: {
@@ -74,6 +76,8 @@ export const rolePermissions = {
       column: true,
       rowComments: true,
       projectSettings: true,
+      hideAllColumns: true,
+      showAllColumns: true,
     },
   },
   [ProjectRole.Viewer]: {
@@ -89,6 +93,8 @@ export const rolePermissions = {
       settings: true,
       apiTokenTab: true,
       teamAndAuth: true,
+      hideAllColumns: true,
+      showAllColumns: true,
     },
   },
 } as const
