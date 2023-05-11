@@ -14,7 +14,6 @@ import {
   useColumnCreateStoreOrThrow,
   useEventListener,
   useGlobal,
-  useI18n,
   useMetas,
   useNuxtApp,
   watchEffect,
@@ -167,7 +166,7 @@ useEventListener('keydown', (e: KeyboardEvent) => {
         <div v-if="formState.uidt === UITypes.Attachment">
           <a-tooltip>
             <template #title>{{ $t('tooltip.onlyS3') }}</template>
-            <a-switch v-model:checked="formState.public" :disabled="isEdit"></a-switch>
+            <a-switch v-model:checked="formState.public"></a-switch>
             {{ $t('labels.isPublic') }}
           </a-tooltip>
         </div>
