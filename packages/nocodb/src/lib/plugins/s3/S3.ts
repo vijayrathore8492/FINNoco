@@ -41,13 +41,13 @@ export default class S3 implements IStorageAdapterV2 {
           reject(err);
         }
         if (data) {
-          //unlink file from temp folder
           await promisify(fs.unlink)(file.path);
           resolve(data.Location);
         }
       });
     });
   }
+
   async fileCreateByUrl(key: string, url: string): Promise<any> {
     const uploadParams: any = {
       ACL: 'public-read',
@@ -101,7 +101,7 @@ export default class S3 implements IStorageAdapterV2 {
   public getSignedUrl(key, expires = 900) {
     const signedUrl = this.s3Client.getSignedUrl('getObject', {
       Key: key,
-      Expires: expires
+      Expires: expires,
     });
     return signedUrl;
   }
@@ -135,14 +135,14 @@ export default class S3 implements IStorageAdapterV2 {
     location,
     fileName,
     content,
-    contentType
+    contentType,
   }): Promise<any> {
     const buf = Buffer.from(content);
     return await this.upload({
       Key: slash(path.join(location, fileName)),
       Body: buf,
       ContentEncoding: 'base64',
-      ContentType: contentType
+      ContentType: contentType,
     });
   }
 
@@ -177,7 +177,11 @@ export default class S3 implements IStorageAdapterV2 {
         originalname: 'temp.txt',
         size: '',
       });
-      await promisify(fs.unlink)(tempFile);
+
+      if (fs.existsSync(tempFile)) {
+        await promisify(fs.unlink)(tempFile);
+      }
+
       return true;
     } catch (e) {
       throw e;

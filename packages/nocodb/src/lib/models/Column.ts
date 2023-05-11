@@ -1039,6 +1039,7 @@ export default class Column<T = any> implements ColumnType {
       'pv',
       'system',
       'validate',
+      'public',
       'meta',
       'visibility_rules',
     ]);
