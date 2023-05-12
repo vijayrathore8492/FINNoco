@@ -43,7 +43,6 @@ import Validator from 'validator';
 import { customValidators } from './customValidators';
 import { NcError } from '../../../../meta/helpers/catchError';
 import { customAlphabet } from 'nanoid';
-import { generateS3SignedUrls } from './decorators/GenerateS3SignedUrls';
 import DOMPurify from 'isomorphic-dompurify';
 import { sanitize, unsanitize } from './helpers/sanitize';
 import QrCodeColumn from '../../../../models/QrCodeColumn';
@@ -73,6 +72,7 @@ class BaseModelSqlv2 {
   protected dbDriver: XKnex;
   protected model: Model;
   protected viewId: string;
+  protected storageAdapter;
   private _proto: any;
   private _columns = {};
   private _userRoles = {};
@@ -971,7 +971,7 @@ class BaseModelSqlv2 {
 
     const proto = await childModel.getProto();
     let data = await this.execAndParse(qb);
-    data = this.convertAttachmentType(data);
+    data = await this.convertAttachmentType(data);
     return data.map((c) => {
       c.__proto__ = proto;
       return c;
@@ -3006,7 +3006,6 @@ class BaseModelSqlv2 {
     return await qb;
   }
 
-  @generateS3SignedUrls()
   private async execAndParse(qb: Knex.QueryBuilder, childTable?: Model) {
     let query = qb.toQuery();
     if (!this.isPg && !this.isMssql && !this.isSnowflake) {
@@ -3014,6 +3013,7 @@ class BaseModelSqlv2 {
     } else {
       query = sanitize(query);
     }
+
     return this.convertAttachmentType(
       this.isPg || this.isSnowflake
         ? (await this.dbDriver.raw(query))?.rows
@@ -3026,23 +3026,45 @@ class BaseModelSqlv2 {
     );
   }
 
+  /**
+   * @description  converts attachment type and adds signed url for private attachments
+   * @param attachmentColumns attachment columns
+   * @param d data
+   *
+   * depends on storage adapter
+   */
   private _convertAttachmentType(
-    _attachmentColumns: Record<string, any>[],
+    attachmentColumns: Record<string, any>[],
     d: Record<string, any>
   ) {
-    // try {
-    //   if (d) {
-    //     attachmentColumns.forEach((col) => {
-    //       if (d[col.title] && typeof d[col.title] === 'string') {
-    //         d[col.title] = JSON.parse(d[col.title]);
-    //       }
-    //     });
-    //   }
-    // } catch {}
+    try {
+      if (d) {
+        attachmentColumns.forEach((col) => {
+          if (d[col.title] && typeof d[col.title] === 'string') {
+            d[col.title] = JSON.parse(d[col.title]);
+          }
+          // get signed url for private attachments
+          if (!col.public && d[col.title]?.length) {
+            d[col.title] = d[col.title].map((attachmentData) => {
+              if (attachmentData?.S3Key) {
+                attachmentData.url = this.storageAdapter.getSignedUrl(
+                  attachmentData?.S3Key
+                );
+              }
+              return attachmentData;
+            });
+          }
+          d[col.title] = JSON.stringify(d[col.title]);
+        });
+      }
+    } catch {}
     return d;
   }
 
-  private convertAttachmentType(data: Record<string, any>, childTable?: Model) {
+  private async convertAttachmentType(
+    data: Record<string, any>,
+    childTable?: Model
+  ) {
     // attachment is stored in text and parse in UI
     // convertAttachmentType is used to convert the response in string to array of object in API response
     if (data) {
@@ -3050,6 +3072,11 @@ class BaseModelSqlv2 {
         childTable ? childTable.columns : this.model.columns
       ).filter((c) => c.uidt === UITypes.Attachment);
       if (attachmentColumns.length) {
+        // initialize storage adapter if not initialized, so it can be used in _convertAttachmentType
+        if (!this.storageAdapter) {
+          this.storageAdapter = await NcPluginMgrv2.storageAdapter();
+        }
+
         if (Array.isArray(data)) {
           data = data.map((d) =>
             this._convertAttachmentType(attachmentColumns, d)
