@@ -3043,8 +3043,8 @@ class BaseModelSqlv2 {
           if (d[col.title] && typeof d[col.title] === 'string') {
             d[col.title] = JSON.parse(d[col.title]);
           }
-          // get signed url for private attachments
-          if (!col.public && d[col.title]?.length) {
+          // get signed url for all eligible attachments, as there could be private attachments in public column after access update
+          if (d[col.title]?.length) {
             d[col.title] = d[col.title].map((attachmentData) => {
               if (attachmentData?.S3Key) {
                 attachmentData.url = this.storageAdapter.getSignedUrl(

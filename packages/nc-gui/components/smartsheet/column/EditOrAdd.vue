@@ -33,7 +33,7 @@ const { formState, generateNewColumnMeta, addOrUpdate, onAlter, onUidtOrIdTypeCh
 
 const { getMeta } = useMetas()
 
-const { $e } = useNuxtApp()
+const { $api, $e } = useNuxtApp()
 
 const { appInfo } = useGlobal()
 
@@ -65,6 +65,14 @@ const uiTypesOptions = computed<typeof uiTypes>(() => {
       : []),
   ]
 })
+
+const isS3PluginActive = ref(false)
+
+const setIsS3PluginActive = async () => {
+  isS3PluginActive.value = (await $api.plugin.status('S3')) || false
+}
+
+setIsS3PluginActive()
 
 const reloadMetaAndData = async () => {
   await getMeta(meta.value?.id as string, true)
@@ -163,9 +171,9 @@ useEventListener('keydown', (e: KeyboardEvent) => {
             </a-select-option>
           </a-select>
         </a-form-item>
-        <div v-if="formState.uidt === UITypes.Attachment">
+        <div v-if="isS3PluginActive && formState.uidt === UITypes.Attachment">
           <a-tooltip>
-            <template #title>{{ $t('tooltip.onlyS3') }}</template>
+            <template #title>{{ $t('tooltip.S3ToggleWarning') }}</template>
             <a-switch v-model:checked="formState.public"></a-switch>
             {{ $t('labels.isPublic') }}
           </a-tooltip>

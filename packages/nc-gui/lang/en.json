@@ -482,7 +482,7 @@
     "clientKey": "Select .key file",
     "clientCert": "Select .cert file",
     "clientCA": "Select CA file",
-    "onlyS3": "Only works with S3 plugin"
+    "S3ToggleWarning": "Changing access of the column will not change the access of uploaded files. please re-upload the files after access change."
   },
   "placeholder": {
     "projName": "Enter Project Name",
