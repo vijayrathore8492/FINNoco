@@ -166,12 +166,12 @@ export const comparisonOpList = (
   {
     text: '>=',
     value: 'gte',
-    includedTypes: [...numericUITypes],
+    includedTypes: [...numericUITypes, UITypes.Date, UITypes.DateTime],
   },
   {
     text: '<=',
     value: 'lte',
-    includedTypes: [...numericUITypes],
+    includedTypes: [...numericUITypes, UITypes.Date, UITypes.DateTime],
   },
   {
     text: 'is blank',
