@@ -15,6 +15,8 @@ import LinkToAnotherRecordColumn from '../../../models/LinkToAnotherRecordColumn
 
 import papaparse from 'papaparse';
 import getAst from '../../../db/sql-data-mapper/lib/sql/helpers/getAst';
+import dayjs from 'dayjs';
+
 export async function getViewAndModelFromRequestByAliasOrId(
   req:
     | Request<{ projectName: string; tableName: string; viewName?: string }>
@@ -232,6 +234,10 @@ export async function serializeCellValue({
           .join(', ');
       }
       break;
+    case UITypes.Date:
+      return dayjs(value).format('YYYY-MM-DD');
+    case UITypes.DateTime:
+      return dayjs(value).format('YYYY-MM-DD HH:mm:ss');
     default:
       if (value && typeof value === 'object') {
         return JSON.stringify(value);
