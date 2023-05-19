@@ -16,6 +16,11 @@ import LinkToAnotherRecordColumn from '../../../models/LinkToAnotherRecordColumn
 import papaparse from 'papaparse';
 import getAst from '../../../db/sql-data-mapper/lib/sql/helpers/getAst';
 import dayjs from 'dayjs';
+import utc from 'dayjs/plugin/utc';
+import timezone from 'dayjs/plugin/timezone';
+
+dayjs.extend(utc);
+dayjs.extend(timezone);
 
 export async function getViewAndModelFromRequestByAliasOrId(
   req:
@@ -165,6 +170,7 @@ async function getDbRows(baseModel, view: View, req: Request) {
           value: row[column.title],
           column,
           siteUrl: req['ncSiteUrl'],
+          clientTimeZone: req['clientTimeZone'],
         });
       }
       dbRows.push(dbRow);
@@ -177,10 +183,12 @@ export async function serializeCellValue({
   value,
   column,
   siteUrl,
+  clientTimeZone,
 }: {
   column?: Column;
   value: any;
   siteUrl: string;
+  clientTimeZone?: string;
 }) {
   if (!column) {
     return value;
@@ -235,9 +243,9 @@ export async function serializeCellValue({
       }
       break;
     case UITypes.Date:
-      return dayjs(value).format('YYYY-MM-DD');
+      return dayjs(value).tz(clientTimeZone).format('YYYY-MM-DD');
     case UITypes.DateTime:
-      return dayjs(value).format('YYYY-MM-DD HH:mm:ss');
+      return dayjs(value).tz(clientTimeZone).format('YYYY-MM-DD HH:mm:ss');
     default:
       if (value && typeof value === 'object') {
         return JSON.stringify(value);
