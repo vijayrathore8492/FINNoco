@@ -13,6 +13,9 @@ export function createApiInstance<SecurityDataType = any>({
   return addAxiosInterceptors(
     new Api<SecurityDataType>({
       baseURL: config.public.ncBackendUrl || baseURL,
+      headers: {
+        'xc-timezone': Intl.DateTimeFormat().resolvedOptions().timeZone,
+      },
     }),
   )
 }
