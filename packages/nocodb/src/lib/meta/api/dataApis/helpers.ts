@@ -247,7 +247,13 @@ export async function serializeCellValue({
         .tz(clientTimeZone)
         .format(column.meta?.date_format || 'YYYY-MM-DD');
     case UITypes.DateTime:
-      return dayjs(value).tz(clientTimeZone).format('YYYY-MM-DD HH:mm:ss');
+      return dayjs(value)
+        .tz(clientTimeZone)
+        .format(
+          `${column.meta?.date_format || 'YYYY-MM-DD'} ${
+            column.meta?.time_format || 'HH:mm:ss'
+          }`
+        );
     default:
       if (value && typeof value === 'object') {
         return JSON.stringify(value);
