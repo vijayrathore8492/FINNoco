@@ -122,7 +122,7 @@ export async function extractCsvData(view: View, req) {
 
 async function getDbRows(baseModel, view: View, req: Request) {
   let offset = +req.query.offset || 0;
-  const limit = 1024;
+  const limit = Math.max(+process.env.DB_QUERY_LIMIT_MAX || 1000, 1);
   // const size = +process.env.NC_EXPORT_MAX_SIZE || 1024;
   const timeout = +process.env.NC_EXPORT_MAX_TIMEOUT || 5000;
   const dbRows = [];
