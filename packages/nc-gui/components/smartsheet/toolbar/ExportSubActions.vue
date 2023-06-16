@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import type { RequestParams } from 'nocodb-sdk'
 import { ExportTypes } from 'nocodb-sdk'
+import NProgress from 'nprogress'
 import {
   ActiveViewInj,
   FieldsInj,
@@ -33,64 +34,57 @@ const selectedView = inject(ActiveViewInj)
 const { sorts, nestedFilters } = useSmartsheetStoreOrThrow()
 
 const exportFile = async (exportType: ExportTypes) => {
-  let offset = 0
   let c = 1
-  const responseType = exportType === ExportTypes.EXCEL ? 'base64' : 'blob'
+  const responseType = exportType === ExportTypes.EXCEL ? 'text' : 'blob'
 
   const XLSX = await import('xlsx')
   const FileSaver = await import('file-saver')
 
   try {
-    while (!isNaN(offset) && offset > -1) {
-      let res
-      if (isPublicView.value) {
-        const { exportFile: sharedViewExportFile } = useSharedView()
-        res = await sharedViewExportFile(fields.value, offset, exportType, responseType, {
-          sortsArr: sorts.value,
-          filtersArr: nestedFilters.value,
-        })
-      } else {
-        res = await $api.dbViewRow.export(
-          'noco',
-          project.value?.title as string,
-          meta.value?.title as string,
-          selectedView?.value.title as string,
-          exportType,
-          {
-            responseType,
-            query: {
-              fields: fields.value.map((field) => field.title),
-              offset,
-              sortArrJson: JSON.stringify(sorts.value),
-              filterArrJson: JSON.stringify(nestedFilters.value),
-            },
-          } as RequestParams,
-        )
-      }
-
-      const { data, headers } = res
-
-      if (exportType === ExportTypes.EXCEL) {
-        const workbook = XLSX.read(data, { type: 'base64' })
-
-        XLSX.writeFile(workbook, `${meta.value?.title}_exported_${c++}.xlsx`)
-      } else if (exportType === ExportTypes.CSV) {
-        const blob = new Blob([data], { type: 'text/plain;charset=utf-8' })
-
-        FileSaver.saveAs(blob, `${meta.value?.title}_exported_${c++}.csv`)
-      }
-
-      offset = +headers['nc-export-offset']
-      if (offset > -1) {
-        // Downloading more files
-        message.info(t('msg.info.downloadingMoreFiles'))
-      } else {
-        // Successfully exported all table data
-        message.success(t('msg.success.tableDataExported'))
-      }
+    let res
+    message.info('Exporting table data, please wait...')
+    NProgress.start()
+    if (isPublicView.value) {
+      const { exportFile: sharedViewExportFile } = useSharedView()
+      res = await sharedViewExportFile(fields.value, exportType, responseType, {
+        sortsArr: sorts.value,
+        filtersArr: nestedFilters.value,
+      })
+    } else {
+      res = await $api.dbViewRow.export(
+        'noco',
+        project.value?.title as string,
+        meta.value?.title as string,
+        selectedView?.value.title as string,
+        exportType,
+        {
+          responseType,
+          query: {
+            fields: fields.value.map((field) => field.title),
+            sortArrJson: JSON.stringify(sorts.value),
+            filterArrJson: JSON.stringify(nestedFilters.value),
+          },
+        } as RequestParams,
+      )
     }
+
+    const { data } = res
+
+    if (exportType === ExportTypes.EXCEL) {
+      const workbook = XLSX.read(data, { type: 'string' })
+
+      XLSX.writeFile(workbook, `${meta.value?.title}_exported_${c++}.xlsx`)
+    } else if (exportType === ExportTypes.CSV) {
+      const blob = new Blob([data], { type: 'text/plain;charset=utf-8' })
+
+      FileSaver.saveAs(blob, `${meta.value?.title}_exported_${c++}.csv`)
+    }
+
+    message.success(t('msg.success.tableDataExported'))
   } catch (e: any) {
     message.error(await extractSdkResponseErrorMsg(e))
+  } finally {
+    NProgress.done()
   }
 }
 </script>
