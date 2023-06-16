@@ -143,16 +143,14 @@ export function useSharedView() {
 
   const exportFile = async (
     fields: any[],
-    offset: number,
     type: ExportTypes.EXCEL | ExportTypes.CSV,
-    responseType: 'base64' | 'blob',
+    responseType: 'base64' | 'blob' | 'text',
     { sortsArr, filtersArr }: { sortsArr: SortType[]; filtersArr: FilterType[] } = { sortsArr: [], filtersArr: [] },
   ) => {
     return await $api.public.csvExport(sharedView.value!.uuid!, type, {
       format: responseType,
       query: {
         fields: fields.map((field) => field.title),
-        offset,
         filterArrJson: JSON.stringify(filtersArr ?? nestedFilters.value),
         sortArrJson: JSON.stringify(sortsArr ?? sorts.value),
       },
