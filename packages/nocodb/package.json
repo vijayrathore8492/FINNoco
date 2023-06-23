@@ -59,7 +59,7 @@
     "crypto-js": "^4.0.0",
     "dataloader": "^2.0.0",
     "dayjs": "^1.8.34",
-    "dd-trace": "^3.22.1",
+    "dd-trace": "^4.2.0",
     "debug": "^4.2.0",
     "dotenv": "^8.2.0",
     "ejs": "^3.1.3",
