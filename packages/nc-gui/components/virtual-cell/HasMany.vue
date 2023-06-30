@@ -96,7 +96,7 @@ useSelectedCellKeyupListener(inject(ActiveCellInj, ref(false)), (e: KeyboardEven
 <template>
   <div class="flex items-center gap-1 w-full chips-wrapper">
     <template v-if="!isForm">
-      <div class="chips flex items-center img-container flex-1 hm-items flex-nowrap min-w-0 overflow-hidden">
+      <div class="chips flex items-center img-container flex-1 hm-items flex-wrap min-w-0 overflow-hidden">
         <template v-if="cells">
           <VirtualCellComponentsItemChip
             v-for="(cell, i) of cells"
