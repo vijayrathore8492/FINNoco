@@ -36,9 +36,13 @@ const listItemsDlg = ref(false)
 
 const childListDlg = ref(false)
 
+const flexWrap = ref(false)
+
 const { isUIAllowed } = useUIPermission()
 
 const { state, isNew, removeLTARRef } = useSmartsheetRowStoreOrThrow()
+
+const flexClassName = computed(() => (flexWrap.value ? 'flex-wrap' : 'flex-nowrap'))
 
 const { loadRelatedTableMeta, relatedTableDisplayValueProp, unlink } = useProvideLTARStore(
   column as Ref<Required<ColumnType>>,
@@ -96,7 +100,7 @@ useSelectedCellKeyupListener(inject(ActiveCellInj, ref(false)), (e: KeyboardEven
 <template>
   <div class="flex items-center gap-1 w-full chips-wrapper">
     <template v-if="!isForm">
-      <div class="chips flex items-center img-container flex-1 hm-items flex-wrap min-w-0 overflow-hidden">
+      <div class="chips flex items-center img-container flex-1 hm-items  min-w-0 overflow-hidden" :class="flexClassName">
         <template v-if="cells">
           <VirtualCellComponentsItemChip
             v-for="(cell, i) of cells"
@@ -105,14 +109,22 @@ useSelectedCellKeyupListener(inject(ActiveCellInj, ref(false)), (e: KeyboardEven
             :value="cell.value"
             @unlink="unlinkRef(cell.item)"
           />
-
-          <span v-if="cellValue?.length === 10" class="caption pointer ml-1 grey--text" @click="childListDlg = true">
-            more...
-          </span>
         </template>
       </div>
 
       <div v-if="!isLocked" class="flex justify-end gap-1 min-h-[30px] items-center">
+        <MdiArrowExpandDown
+          v-if="!flexWrap"
+          class="select-none transform text-sm nc-action-icon text-gray-500/50 hover:text-gray-500 nc-arrow-expand"
+          @click.stop="flexWrap = true"
+        />
+
+        <MdiArrowExpandUp
+          v-if="flexWrap"
+          class="select-none transform text-sm nc-action-icon text-gray-500/50 hover:text-gray-500 nc-arrow-expand"
+          @click.stop="flexWrap = false"
+        />
+
         <MdiArrowExpand
           class="select-none transform text-sm nc-action-icon text-gray-500/50 hover:text-gray-500 nc-arrow-expand"
           @click.stop="childListDlg = true"
