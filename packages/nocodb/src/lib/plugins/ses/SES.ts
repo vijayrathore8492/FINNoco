@@ -1,7 +1,7 @@
 import { IEmailAdapter } from 'nc-plugin';
 import nodemailer from 'nodemailer';
 import Mail from 'nodemailer/lib/mailer';
-import AWS from 'aws-sdk';
+import { SES as AWS_SES, SESClientConfig } from '@aws-sdk/client-ses';
 import { XcEmail } from '../../../interface/IEmailAdapter';
 
 export default class SES implements IEmailAdapter {
@@ -13,14 +13,16 @@ export default class SES implements IEmailAdapter {
   }
 
   public async init(): Promise<any> {
-    const sesOptions: any = {
-      accessKeyId: this.input.access_key,
-      secretAccessKey: this.input.access_secret,
+    const sesOptions: SESClientConfig = {
+      credentials: {
+        accessKeyId: this.input.access_key,
+        secretAccessKey: this.input.access_secret,
+      },
       region: this.input.region,
     };
 
     this.transporter = nodemailer.createTransport({
-      SES: new AWS.SES(sesOptions),
+      SES: new AWS_SES(sesOptions),
     });
   }
 

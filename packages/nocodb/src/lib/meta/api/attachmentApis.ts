@@ -196,7 +196,9 @@ async function uploadAttachment(filePath, column, files) {
         mimetype: file.mimetype,
         size: file.size,
         icon: mimeIcons[path.extname(file.originalname).slice(1)] || undefined,
-        ...(!column.public ? s3KeyObject(storageAdapter, relativePath) : {}),
+        ...(!column.public
+          ? await s3KeyObject(storageAdapter, relativePath)
+          : {}),
       };
     })
   );
@@ -231,12 +233,12 @@ async function extractInfoFromRequest(req): Promise<{
   };
 }
 
-function s3KeyObject(storageAdapter, key: string) {
+async function s3KeyObject(storageAdapter, key: string) {
   if (!(storageAdapter instanceof S3)) return {};
 
   return {
     S3Key: key,
-    url: storageAdapter.getSignedUrl(key),
+    url: await storageAdapter.getSignedUrl(key),
   };
 }
 

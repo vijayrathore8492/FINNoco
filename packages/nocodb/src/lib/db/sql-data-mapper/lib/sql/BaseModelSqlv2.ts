@@ -3033,29 +3033,32 @@ class BaseModelSqlv2 {
    *
    * depends on storage adapter
    */
-  private _convertAttachmentType(
+  private async _convertAttachmentType(
     attachmentColumns: Record<string, any>[],
     d: Record<string, any>
   ) {
     try {
       if (d) {
-        attachmentColumns.forEach((col) => {
+        if (!this.storageAdapter) {
+          this.storageAdapter = await NcPluginMgrv2.storageAdapter();
+        }
+
+        for (const col of attachmentColumns) {
           if (d[col.title] && typeof d[col.title] === 'string') {
             d[col.title] = JSON.parse(d[col.title]);
           }
           // get signed url for all eligible attachments, as there could be private attachments in public column after access update
           if (d[col.title]?.length) {
-            d[col.title] = d[col.title].map((attachmentData) => {
+            for (const attachmentData of d[col.title]) {
               if (attachmentData?.S3Key) {
-                attachmentData.url = this.storageAdapter.getSignedUrl(
+                attachmentData.url = await this.storageAdapter.getSignedUrl(
                   attachmentData?.S3Key
                 );
               }
-              return attachmentData;
-            });
+            }
           }
           d[col.title] = JSON.stringify(d[col.title]);
-        });
+        }
       }
     } catch {}
     return d;
@@ -3071,18 +3074,14 @@ class BaseModelSqlv2 {
       const attachmentColumns = (
         childTable ? childTable.columns : this.model.columns
       ).filter((c) => c.uidt === UITypes.Attachment);
-      if (attachmentColumns.length) {
-        // initialize storage adapter if not initialized, so it can be used in _convertAttachmentType
-        if (!this.storageAdapter) {
-          this.storageAdapter = await NcPluginMgrv2.storageAdapter();
-        }
 
+      if (attachmentColumns.length) {
         if (Array.isArray(data)) {
-          data = data.map((d) =>
-            this._convertAttachmentType(attachmentColumns, d)
-          );
+          for (const d of data) {
+            await this._convertAttachmentType(attachmentColumns, d);
+          }
         } else {
-          this._convertAttachmentType(attachmentColumns, data);
+          await this._convertAttachmentType(attachmentColumns, data);
         }
       }
     }
