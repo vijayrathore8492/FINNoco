@@ -1,19 +1,23 @@
 import fs from 'fs';
 import { promisify } from 'util';
+import { S3, S3ClientConfig } from '@aws-sdk/client-s3';
 import { IStorageAdapterV2, XcFile } from 'nc-plugin';
-import AWS from 'aws-sdk';
 import request from 'request';
 import {
-  waitForStreamClose,
   generateTempFilePath,
+  waitForStreamClose,
 } from '../../utils/pluginUtils';
 
 export default class ScalewayObjectStorage implements IStorageAdapterV2 {
-  private s3Client: AWS.S3;
+  private s3Client: S3;
   private input: any;
 
   constructor(input: any) {
     this.input = input;
+  }
+
+  get endpoint(): string {
+    return `https://s3.${this.input.region}.scw.cloud`;
   }
 
   public async fileRead(key: string): Promise<any> {
@@ -53,17 +57,16 @@ export default class ScalewayObjectStorage implements IStorageAdapterV2 {
   }
 
   public async init(): Promise<any> {
-    const s3Options: any = {
-      params: { Bucket: this.input.bucket },
+    const s3Options: S3ClientConfig = {
+      credentials: {
+        accessKeyId: this.input.access_key,
+        secretAccessKey: this.input.access_secret,
+      },
       region: this.input.region,
+      endpoint: this.endpoint,
     };
 
-    s3Options.accessKeyId = this.input.access_key;
-    s3Options.secretAccessKey = this.input.access_secret;
-
-    s3Options.endpoint = new AWS.Endpoint(`s3.${this.input.region}.scw.cloud`);
-
-    this.s3Client = new AWS.S3(s3Options);
+    this.s3Client = new S3(s3Options);
   }
 
   async fileCreate(
@@ -87,13 +90,13 @@ export default class ScalewayObjectStorage implements IStorageAdapterV2 {
       uploadParams.Key = key;
 
       // call S3 to retrieve upload file to specified bucket
-      this.s3Client.upload(uploadParams, (err, data) => {
+      this.s3Client.putObject(uploadParams, (err, data) => {
         if (err) {
           console.log('Error', err);
           reject(err);
         }
         if (data) {
-          resolve(data.Location);
+          resolve(`${this.endpoint}/${uploadParams.Key}`);
         }
       });
     });
@@ -118,13 +121,13 @@ export default class ScalewayObjectStorage implements IStorageAdapterV2 {
           uploadParams.ContentType = httpResponse.headers['content-type'];
 
           // call S3 to retrieve upload file to specified bucket
-          this.s3Client.upload(uploadParams, (err1, data) => {
+          this.s3Client.putObject(uploadParams, (err1, data) => {
             if (err) {
               console.log('Error', err);
               reject(err1);
             }
             if (data) {
-              resolve(data.Location);
+              resolve(`${this.endpoint}/${uploadParams.Key}`);
             }
           });
         }

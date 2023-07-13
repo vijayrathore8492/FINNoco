@@ -8,10 +8,10 @@ import NcPluginMgrv2 from '../../../../../meta/helpers/NcPluginMgrv2';
  */
 
 export function generateS3SignedUrls() {
-  return function(_target, _key, fn: PropertyDescriptor) {
+  return function (_target, _key, fn: PropertyDescriptor) {
     const originalFn = fn.value;
 
-    fn.value = async function(...args) {
+    fn.value = async function (...args) {
       if (!this.storageAdapter) {
         this.storageAdapter = await NcPluginMgrv2.storageAdapter();
       }
@@ -19,7 +19,7 @@ export function generateS3SignedUrls() {
       if (typeof result !== 'object' || !isS3PluginActive.call(this))
         return result;
 
-      return reparseResult.call(this, result);
+      return await reparseResult.call(this, result);
     };
     return fn;
   };
@@ -34,11 +34,14 @@ function isS3PluginActive() {
  * @param {any} result - the result of a filter function.
  * @returns Object with S3 URLs replaced with signed URLs.
  */
-function reparseResult(result) {
+async function reparseResult(result) {
   const stringifiedResult = JSON.stringify(result);
   if (!hasS3Url(stringifiedResult)) return result;
 
-  return JSON.parse(stringifiedResult, replaceUrlWithSignedUrlFn.call(this));
+  return JSON.parse(
+    stringifiedResult,
+    await replaceUrlWithSignedUrlFn.call(this)
+  );
 }
 
 function hasS3Url(result: string) {
@@ -52,18 +55,17 @@ function hasS3Url(result: string) {
  */
 // eslint-disable-next-line @typescript-eslint/ban-types
 function replaceUrlWithSignedUrlFn(): Function {
-  return (_k, v) => {
+  return async (_k, v) => {
     const parsed = tryParseJson(v);
     if (!parsed || !Array.isArray(parsed)) return v;
 
-    return JSON.stringify(
-      parsed.map(item => {
-        if (item?.S3Key)
-          item.url = this.storageAdapter.getSignedUrl(item.S3Key);
+    for (const item of parsed) {
+      if (item?.S3Key) {
+        item.url = await this.storageAdapter.getSignedUrl(item.S3Key);
+      }
+    }
 
-        return item;
-      })
-    );
+    return JSON.stringify(parsed);
   };
 }
 

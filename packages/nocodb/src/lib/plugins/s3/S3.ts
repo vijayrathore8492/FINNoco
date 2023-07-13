@@ -1,6 +1,7 @@
 import fs from 'fs';
 import { promisify } from 'util';
-import AWS from 'aws-sdk';
+import { GetObjectCommand, S3 as S3Client } from '@aws-sdk/client-s3';
+import { getSignedUrl } from '@aws-sdk/s3-request-presigner';
 import slash from 'slash';
 import { IStorageAdapterV2, XcFile } from 'nc-plugin';
 import request from 'request';
@@ -11,11 +12,30 @@ import {
 import path from 'path';
 
 export default class S3 implements IStorageAdapterV2 {
-  private s3Client: AWS.S3;
+  private s3Client: S3Client;
   private input: any;
 
   constructor(input: any) {
     this.input = input;
+  }
+
+  public async init(): Promise<any> {
+    const s3Options = {
+      region: this.input.region,
+      credentials: {
+        accessKeyId: this.input.access_key,
+        secretAccessKey: this.input.access_secret,
+      },
+    };
+
+    this.s3Client = new S3Client(s3Options);
+  }
+
+  get defaultUploadParams() {
+    return {
+      ACL: 'private',
+      Bucket: this.input.bucket,
+    };
   }
 
   async fileCreate(key: string, file: XcFile, isPublic = false): Promise<any> {
@@ -23,87 +43,31 @@ export default class S3 implements IStorageAdapterV2 {
       ACL: isPublic ? 'public-read' : 'private',
       ContentType: file.mimetype,
     };
-    return new Promise((resolve, reject) => {
-      // Configure the file stream and obtain the upload parameters
-      const fileStream = fs.createReadStream(file.path);
-      fileStream.on('error', (err) => {
-        console.log('File Error', err);
-        reject(err);
-      });
-
-      uploadParams.Body = fileStream;
-      uploadParams.Key = key;
-
-      // call S3 to retrieve upload file to specified bucket
-      this.s3Client.upload(uploadParams, async (err, data) => {
-        if (err) {
-          console.log('Error', err);
-          reject(err);
-        }
-        if (data) {
-          await promisify(fs.unlink)(file.path);
-          resolve(data.Location);
-        }
-      });
+    // Configure the file stream and obtain the upload parameters
+    const fileStream = fs.createReadStream(file.path);
+    fileStream.on('error', (err) => {
+      console.log('File Error', err);
+      throw err;
     });
+
+    uploadParams.Body = fileStream;
+    uploadParams.Key = key;
+
+    const result = this.upload(uploadParams);
+
+    // unlink file after upload if file exists
+    if (fs.existsSync(file.path)) {
+      fs.unlinkSync(file.path);
+    }
+    return result;
   }
 
-  async fileCreateByUrl(key: string, url: string): Promise<any> {
-    const uploadParams: any = {
-      ACL: 'public-read',
-    };
-    return new Promise((resolve, reject) => {
-      // Configure the file stream and obtain the upload parameters
-      request(
-        {
-          url: url,
-          encoding: null,
-        },
-        (err, httpResponse, body) => {
-          if (err) return reject(err);
-
-          uploadParams.Body = body;
-          uploadParams.Key = key;
-          uploadParams.ContentType = httpResponse.headers['content-type'];
-
-          // call S3 to retrieve upload file to specified bucket
-          this.s3Client.upload(uploadParams, (err1, data) => {
-            if (err) {
-              console.log('Error', err);
-              reject(err1);
-            }
-            if (data) {
-              resolve(data.Location);
-            }
-          });
-        }
-      );
-    });
-  }
-
-  private async upload(uploadParams): Promise<any> {
-    return new Promise((resolve, reject) => {
-      this.s3Client.upload(uploadParams, (err, data) => {
-        if (err) {
-          reject(err);
-        } else {
-          resolve(data.Location);
-        }
-      });
-    });
-  }
-
-  /**
-   * Generates a signed S3 URL for the given file.
-   * @param {string} file - the file to generate a signed URL for.
-   * @returns {string} The signed S3 URL.
-   */
-  public getSignedUrl(key, expires = 900) {
-    const signedUrl = this.s3Client.getSignedUrl('getObject', {
+  public async getSignedUrl(key, expires = 900) {
+    const command = new GetObjectCommand({
       Key: key,
-      Expires: expires,
+      Bucket: this.input.bucket,
     });
-    return signedUrl;
+    return getSignedUrl(this.s3Client, command, { expiresIn: expires });
   }
 
   public async fileDelete(_path: string): Promise<any> {
@@ -121,6 +85,30 @@ export default class S3 implements IStorageAdapterV2 {
         }
         return resolve(data.Body);
       });
+    });
+  }
+
+  public async fileCreateByUrl(key: string, url: string): Promise<any> {
+    const uploadParams: any = {
+      ACL: 'public-read',
+    };
+    return new Promise((resolve, reject) => {
+      // Configure the file stream and obtain the upload parameters
+      request(
+        {
+          url: url,
+          encoding: null,
+        },
+        (err, httpResponse, body) => {
+          if (err) return reject(err);
+
+          uploadParams.Body = body;
+          uploadParams.Key = key;
+          uploadParams.ContentType = httpResponse.headers['content-type'];
+
+          return resolve(this.upload(uploadParams));
+        }
+      );
     });
   }
 
@@ -146,26 +134,6 @@ export default class S3 implements IStorageAdapterV2 {
     });
   }
 
-  public async init(): Promise<any> {
-    // const s3Options: any = {
-    //   params: {Bucket: process.env.NC_S3_BUCKET},
-    //   region: process.env.NC_S3_REGION
-    // };
-    //
-    // s3Options.accessKeyId = process.env.NC_S3_KEY;
-    // s3Options.secretAccessKey = process.env.NC_S3_SECRET;
-
-    const s3Options: any = {
-      params: { Bucket: this.input.bucket },
-      region: this.input.region,
-    };
-
-    s3Options.accessKeyId = this.input.access_key;
-    s3Options.secretAccessKey = this.input.access_secret;
-
-    this.s3Client = new AWS.S3(s3Options);
-  }
-
   public async test(): Promise<boolean> {
     try {
       const tempFile = generateTempFilePath();
@@ -186,5 +154,24 @@ export default class S3 implements IStorageAdapterV2 {
     } catch (e) {
       throw e;
     }
+  }
+
+  private async upload(uploadParams): Promise<any> {
+    return new Promise((resolve, reject) => {
+      // call S3 to retrieve upload file to specified bucket
+      this.s3Client
+        .putObject({ ...this.defaultUploadParams, ...uploadParams })
+        .then((data) => {
+          if (data) {
+            resolve(
+              `https://${this.input.bucket}.s3.${this.input.region}.amazonaws.com/${uploadParams.Key}`
+            );
+          }
+        })
+        .catch((err) => {
+          console.error(err);
+          reject(err);
+        });
+    });
   }
 }
