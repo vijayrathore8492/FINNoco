@@ -53,7 +53,7 @@ export default class S3 implements IStorageAdapterV2 {
     uploadParams.Body = fileStream;
     uploadParams.Key = key;
 
-    const result = this.upload(uploadParams);
+    const result = await this.upload(uploadParams);
 
     // unlink file after upload if file exists
     if (fs.existsSync(file.path)) {
