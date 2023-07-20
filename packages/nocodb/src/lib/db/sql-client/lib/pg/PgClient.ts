@@ -1199,13 +1199,19 @@ class PGClient extends KnexClient {
                                                       JOIN information_schema.constraint_column_usage AS ccu
                                                            ON ccu.constraint_name = tc.constraint_name
                                                              AND ccu.table_schema = tc.table_schema
-                                                      join (select conname, confupdtype, confdeltype
+                                                      join (select conname, confupdtype, confdeltype, conrelid
                                                             from pg_catalog.pg_constraint) pc
                                                            on pc.conname = tc.constraint_name
+                                                           and pc.conrelid = (
+                                                            SELECT oid
+                                                            FROM pg_class
+                                                            WHERE relname = tc.table_name
+                                                            AND relnamespace = (select oid from pg_catalog.pg_namespace where nspname = ?)
+                                                          )
                                                WHERE tc.constraint_type = 'FOREIGN KEY'
                                                  AND tc.table_schema = ?
                                                order by tc.table_name;`,
-        [this.schema]
+        [this.schema, this.schema]
       );
 
       const ruleMapping = {
