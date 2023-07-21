@@ -224,7 +224,8 @@ async function getMetaDiff(
         });
       }
 
-      if (oldCol.pk !== column.pk) {
+      // Boolean match for SQLITE
+      if (Boolean(oldCol.pk) !== Boolean(column.pk)) {
         tableProp.detectedChanges.push({
           type: MetaDiffType.TABLE_COLUMN_PK_CHANGE,
           msg: `Column pk changed(${column.cn})`,
